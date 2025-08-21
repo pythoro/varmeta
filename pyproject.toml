@@ -1,0 +1,30 @@
+[project]
+name = "varmeta"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "reubenr_holmes", email = "reubenr@holmessolutions.com" }
+]
+requires-python = ">=3.13"
+dependencies = []
+
+[project.scripts]
+varmeta = "varmeta:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "numpy>=2.3.2",
+    "pandas>=2.3.1",
+    "pytest>=8.4.1",
+    "ruff>=0.12.9",
+]
+
+[tool.ruff]
+line-length = 79
+output-format = "concise"
+
