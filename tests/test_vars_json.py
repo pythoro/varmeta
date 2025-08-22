@@ -15,7 +15,10 @@ class TestVarJson:
         # Try the dump
         dump = json.dumps(var.to_dict())
         print(dump)
-        assert dump == '{"key": "temp", "name": "temperature", "units": "Celsius", "desciption": "Ambient temperature", "components": null, "component_axis": 0}'
+        assert (
+            dump
+            == '{"key": "temp", "name": "temperature", "units": "Celsius", "desciption": "Ambient temperature", "components": null, "component_axis": 0}'  # NoQA: E501
+        )
 
     def test_var_dump_components(self):
         var = Var(
@@ -23,10 +26,13 @@ class TestVarJson:
             name="temperature",
             units="Celsius",
             desciption="Ambient temperature",
-            components=('x', 'y', 'z'),
+            components=("x", "y", "z"),
             component_axis=1,
         )
         # Try the dump
         dump = json.dumps(var.to_dict())
         print(dump)
-        assert dump == '{"key": "temp", "name": "temperature", "units": "Celsius", "desciption": "Ambient temperature", "components": ["x", "y", "z"], "component_axis": 1}'
+        assert (
+            dump
+            == '{"key": "temp", "name": "temperature", "units": "Celsius", "desciption": "Ambient temperature", "components": ["x", "y", "z"], "component_axis": 1}'  # NoQA: E501
+        )

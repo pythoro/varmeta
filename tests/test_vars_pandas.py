@@ -44,7 +44,7 @@ class Test_Pandas_Integration:
             components=None,
         )
         var2 = Var(
-            key='m',
+            key="m",
             name="mass",
             units="kg",
             desciption="Mass of the object",
@@ -66,7 +66,7 @@ class Test_Pandas_Integration:
             components=None,
         )
         var2 = Var(
-            key='m',
+            key="m",
             name="mass",
             units="kg",
             desciption="Mass of the object",
@@ -74,8 +74,8 @@ class Test_Pandas_Integration:
         )
         df = pd.DataFrame({var: [200, 300], var2: [3, 4]})
         print(df)
-        csv_output = df.to_csv(index=False, lineterminator='\n')
+        csv_output = df.to_csv(index=False, lineterminator="\n")
         print(csv_output)
         expected_csv = "solar_radiation [W/m^2],mass [kg]\n200,3\n300,4\n"
-        
+
         assert csv_output == expected_csv

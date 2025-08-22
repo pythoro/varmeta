@@ -47,10 +47,9 @@ class TestValDict:
         print(unpacked_dct)
         print(unpacked_dct.get("F_x"))
         assert len(unpacked_dct) == 3
-        assert_array_equal(unpacked_dct.find('F_x'), np.array([10, 11]))
-        assert unpacked_dct.find_var('F_x').name == "force x"
-        assert_array_equal(unpacked_dct.find('F_y'), np.array([20, 21]))
-        assert unpacked_dct.find_var('F_y').name == "force y"
-        assert_array_equal(unpacked_dct.find('F_z'), np.array([30, 31]))
-        assert unpacked_dct.find_var('F_z').name == "force z"
-
+        assert_array_equal(unpacked_dct.find("F_x"), np.array([10, 11]))
+        assert unpacked_dct.find_var("F_x").name == "force x"
+        assert_array_equal(unpacked_dct.find("F_y"), np.array([20, 21]))
+        assert unpacked_dct.find_var("F_y").name == "force y"
+        assert_array_equal(unpacked_dct.find("F_z"), np.array([30, 31]))
+        assert unpacked_dct.find_var("F_z").name == "force z"

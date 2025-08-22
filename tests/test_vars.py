@@ -97,9 +97,10 @@ class TestVar:
             components=("x", "y", "z"),
         )
         data = [[10, 11], [20, 21], [30, 31]]
-        packed_vars, packed_data = force.unpack(data)
-        print(packed_vars)
-        print(packed_data)
+        unpacked = force.unpack(data)
+        print(unpacked)
+        packed_vars = list(unpacked.keys())
+        packed_data = list(unpacked.values())
         assert len(packed_data) == 3
         assert packed_data[0] == [10, 11]
         assert packed_vars[0].name == "force x"
@@ -118,15 +119,15 @@ class TestVar:
             component_axis=1,
         )
         data = [[10, 11], [20, 21], [30, 31]]
-        packed_vars, packed_data = force.unpack(data)
-        print(packed_vars)
-        print(packed_data)
+        unpacked = force.unpack(data)
+        print(unpacked)
+        packed_vars = list(unpacked.keys())
+        packed_data = list(unpacked.values())
         assert len(packed_data) == 2
         assert packed_data[0] == [10, 20, 30]
         assert packed_vars[0].name == "force x"
         assert packed_data[1] == [11, 21, 31]
         assert packed_vars[1].name == "force y"
-
 
     def test_round_trip_dict(self):
         force = Var(
