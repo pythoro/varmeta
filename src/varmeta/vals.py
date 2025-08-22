@@ -2,26 +2,26 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
+
 from .vars import Var
-from typing import Callable
 
 
 class Val:
     def __init__(
-        self, value: object, var: Var, unpack_func: Callable | None = None
+        self, data: object, var: Var
     ):
-        self.value = value
+        self.data = data
         self.var = var
-        self.unpack_func = unpack_func
 
     def __repr__(self) -> str:
-        return f"Val(value={self.value!r}, var={self.var})"
+        return f"Val(data={self.data!r}, var={self.var})"
 
     def unpack(self) -> list[Val]:
-        """Unpack the value components into a list of Val items."""
-        unpackable_vars, unpackable_vals = self.var.unpack(self.value)
+        """Unpack the data components into a list of Val items."""
+        unpackable_vars, unpackable_vals = self.var.unpack(self.data)
         return [
-            Val(value=val, var=var)
+            Val(data=val, var=var)
             for val, var in zip(unpackable_vals, unpackable_vars, strict=True)
         ]
 
@@ -71,7 +71,8 @@ class ValList(list):
 
 
 class ValDict(dict):
-    """A dict of Var: value pairs. Keys must be Var instances."""
+    """A dict of Var: data pairs. Keys must be Var instances."""
+
     _key_index: dict[str, Var]
 
     def __init__(self, *args, **kwargs):
@@ -92,12 +93,20 @@ class ValDict(dict):
         for k, v in kwargs.items():
             self[k] = v  # type: ignore
 
-    def __setitem__(self, key: Var, value: object):
+    @classmethod
+    def from_dicts(
+        cls, data_dict: dict[str, object], var_data: dict[str, dict]
+    ) -> ValDict:
+        var_dct = {key: Var(**data) for key, data in var_data.items()}
+        dct = {var_dct[key]: data for key, data in data_dict.items()}
+        return cls(dct)
+
+    def __setitem__(self, key: Var, data: object):
         if not isinstance(key, Var):
             raise TypeError(
                 f"ValDict keys must be Var instances, got {type(key)}"
             )
-        super().__setitem__(key, value)
+        super().__setitem__(key, data)
         if key.key in self._key_index and self._key_index[key.key] != key:
             raise KeyError(
                 f"Key conflict: '{key.key}' already exists in ValDict"
@@ -120,11 +129,11 @@ class ValDict(dict):
         for k, v in kwargs.items():
             self[k] = v  # type: ignore
 
-    def unpack(self) -> "ValDict":
+    def unpack(self) -> ValDict:
         """Unpack all Val objects in the set."""
         vals = {}
-        for var, value in self.items():
-            unpackable_vars, unpackable_vals = var.unpack(value)
+        for var, data in self.items():
+            unpackable_vars, unpackable_vals = var.unpack(data)
             for val, var in zip(unpackable_vals, unpackable_vars, strict=True):
                 vals[var] = val
         return ValDict(vals)
@@ -134,5 +143,13 @@ class ValDict(dict):
         return self._key_index[key]
 
     def find(self, key: str) -> object:
-        """Get a value by its key."""
+        """Get a data by its key."""
         return self[self._key_index.get(key)]
+
+    def to_dict(self) -> dict:
+        """Convert the ValDict to a regular dict."""
+        return {var.key: data for var, data in self.items()}
+
+    def var_data(self) -> dict:
+        """Return a dictionary of Var object data."""
+        return {var.key: var.to_dict() for var in self._key_index.values()}

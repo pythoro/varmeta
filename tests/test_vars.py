@@ -87,3 +87,56 @@ class TestVar:
             components=("x", "y", "z"),
         )
         assert hash(var) != 0
+
+    def test_unpack_axis_default(self):
+        force = Var(
+            key="F",
+            name="force",
+            units="N",
+            desciption="A force",
+            components=("x", "y", "z"),
+        )
+        data = [[10, 11], [20, 21], [30, 31]]
+        packed_vars, packed_data = force.unpack(data)
+        print(packed_vars)
+        print(packed_data)
+        assert len(packed_data) == 3
+        assert packed_data[0] == [10, 11]
+        assert packed_vars[0].name == "force x"
+        assert packed_data[1] == [20, 21]
+        assert packed_vars[1].name == "force y"
+        assert packed_data[2] == [30, 31]
+        assert packed_vars[2].name == "force z"
+
+    def test_unpack_axis_1(self):
+        force = Var(
+            key="F",
+            name="force",
+            units="N",
+            desciption="A force",
+            components=("x", "y"),
+            component_axis=1,
+        )
+        data = [[10, 11], [20, 21], [30, 31]]
+        packed_vars, packed_data = force.unpack(data)
+        print(packed_vars)
+        print(packed_data)
+        assert len(packed_data) == 2
+        assert packed_data[0] == [10, 20, 30]
+        assert packed_vars[0].name == "force x"
+        assert packed_data[1] == [11, 21, 31]
+        assert packed_vars[1].name == "force y"
+
+
+    def test_round_trip_dict(self):
+        force = Var(
+            key="F",
+            name="force",
+            units="N",
+            desciption="A force",
+            components=("x", "y", "z"),
+        )
+        dct = force.to_dict()
+        print(dct)
+        new_var = Var(**dct)
+        assert new_var == force

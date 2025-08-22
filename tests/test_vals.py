@@ -1,8 +1,9 @@
 """Unittests for vals module."""
 
-from varmeta.vars import Var
-from varmeta.vals import Val, ValDict
 import pytest
+
+from varmeta.vals import Val, ValDict
+from varmeta.vars import Var
 
 
 class TestVal:
@@ -14,8 +15,8 @@ class TestVal:
             desciption="A force",
             components=None,
         )
-        val1 = Val(value=10, var=force)
-        assert val1.value == 10
+        val1 = Val(data=10, var=force)
+        assert val1.data == 10
         assert val1.var == force
 
     def test_unpack(self):
@@ -26,14 +27,14 @@ class TestVal:
             desciption="A force",
             components=("x", "y", "z"),
         )
-        val1 = Val(value=[10, 20, 30], var=force)
+        val1 = Val(data=[10, 20, 30], var=force)
         unpacked_vals = val1.unpack()
         assert len(unpacked_vals) == 3
-        assert unpacked_vals[0].value == 10
+        assert unpacked_vals[0].data == 10
         assert unpacked_vals[0].var.name == "force x"
-        assert unpacked_vals[1].value == 20
+        assert unpacked_vals[1].data == 20
         assert unpacked_vals[1].var.name == "force y"
-        assert unpacked_vals[2].value == 30
+        assert unpacked_vals[2].data == 30
         assert unpacked_vals[2].var.name == "force z"
 
 
@@ -99,13 +100,13 @@ class TestValDict:
         d = ValDict({self.var1: 1, self.var2: 2})
         found_var = d.find_var("k")
         assert found_var == self.var1
-        not_found_var = d.find_var("non_existent")
-        assert not_found_var is None
+        with pytest.raises(KeyError):
+            d.find_var("non_existent")
 
     def test_find(self):
         d = ValDict({self.var1: 1, self.var2: 2})
-        found_value = d.find("k")
-        assert found_value == 1
-        found_value = d.find("b")
-        assert found_value == 2
+        found_data = d.find("k")
+        assert found_data == 1
+        found_data = d.find("b")
+        assert found_data == 2
         

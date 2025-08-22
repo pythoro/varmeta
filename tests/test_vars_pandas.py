@@ -1,7 +1,8 @@
 """Unittests for core module."""
 
-from varmeta import Var
 import pandas as pd
+
+from varmeta import Var
 
 
 class Test_Pandas_Integration:
@@ -28,7 +29,7 @@ class Test_Pandas_Integration:
             desciption="Wind speed at 10m",
             components=None,
         )
-        df = pd.DataFrame({"value": [5.0, 10.0]}, index=[var, var])
+        df = pd.DataFrame({"data": [5.0, 10.0]}, index=[var, var])
         print(df)
         assert df.index[0] == var
         assert df.index[1] == var
