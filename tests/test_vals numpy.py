@@ -45,7 +45,6 @@ class TestValDict:
 
         unpacked_dct = dct.unpack()
         print(unpacked_dct)
-        print('key_index', unpacked_dct._key_index)
         print(unpacked_dct.get("F_x"))
         assert len(unpacked_dct) == 3
         assert_array_equal(unpacked_dct.find('F_x'), np.array([10, 11]))

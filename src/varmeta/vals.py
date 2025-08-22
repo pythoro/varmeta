@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
-from .vars import Var
+from .vars import Var, Store
 
 
 class Val:
@@ -73,10 +73,10 @@ class ValList(list):
 class ValDict(dict):
     """A dict of Var: data pairs. Keys must be Var instances."""
 
-    _key_index: dict[str, Var]
+    _store: Store
 
     def __init__(self, *args, **kwargs):
-        self._key_index = {}
+        self._store = Store()
         super().__init__()
         if len(args) > 0:
             if len(args) > 1:
@@ -101,17 +101,13 @@ class ValDict(dict):
         dct = {var_dct[key]: data for key, data in data_dict.items()}
         return cls(dct)
 
-    def __setitem__(self, key: Var, data: object):
-        if not isinstance(key, Var):
+    def __setitem__(self, var: Var, data: object):
+        if not isinstance(var, Var):
             raise TypeError(
-                f"ValDict keys must be Var instances, got {type(key)}"
+                f"ValDict keys must be Var instances, got {type(var)}"
             )
-        super().__setitem__(key, data)
-        if key.key in self._key_index and self._key_index[key.key] != key:
-            raise KeyError(
-                f"Key conflict: '{key.key}' already exists in ValDict"
-            )
-        self._key_index[key.key] = key
+        super().__setitem__(var, data)
+        self._store.add(var)
 
     def update(self, *args, **kwargs):
         if len(args) > 0:
@@ -140,11 +136,11 @@ class ValDict(dict):
 
     def find_var(self, key: str) -> Var:
         """Get a Var by its key."""
-        return self._key_index[key]
+        return self._store.get(key)
 
     def find(self, key: str) -> object:
         """Get a data by its key."""
-        return self[self._key_index.get(key)]
+        return self[self._store.get(key)]
 
     def to_dict(self) -> dict:
         """Convert the ValDict to a regular dict."""
@@ -152,4 +148,4 @@ class ValDict(dict):
 
     def var_data(self) -> dict:
         """Return a dictionary of Var object data."""
-        return {var.key: var.to_dict() for var in self._key_index.values()}
+        return self._store.to_dict()
