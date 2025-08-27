@@ -3,10 +3,15 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import NotRequired, TypedDict
+from typing import Any, NotRequired, TypedDict
 
 import numpy as np
 from numpy.typing import NDArray
+
+try:
+    import pandas as pd
+except ImportError:
+    pd = None
 
 
 class VarData(TypedDict):
@@ -167,6 +172,32 @@ class Var:
         return tuples
 
 
+def unpack(
+    var_dct: dict[str, Var], data_dct: dict[str, Any]
+) -> tuple[dict[str, Var], dict[str, Any]]:
+    """Get var components for all the vars.
+
+    Returns:
+        tuple[dict[str, Var], dict[str, object]]: Tuple of two dicts:
+            - Mapping from var key to Var object (including components).
+            - Mapping from var key to unpacked data values.
+    """
+    vars = {}
+    vals = {}
+    for key, data in data_dct.items():
+        var = var_dct[key]
+        subvars = var.component_vars()
+        if subvars:
+            tuples = var.unpack_tuples(data)
+            for subvar, subval in tuples:
+                vals[subvar.key] = subval
+                vars[subvar.key] = subvar
+        else:
+            vals[key] = data
+            vars[key] = var
+    return vars, vals
+
+
 class Store:
     """A store for Var objects."""
 
@@ -271,8 +302,8 @@ class Store:
         return {var.key: var.to_dict() for var in self.vars.values()}
 
     def unpack(
-        self, dct: dict[str, object]
-    ) -> tuple[dict[str, Var], dict[str, object]]:
+        self, dct: dict[str, Any]
+    ) -> tuple[dict[str, Var], dict[str, Any]]:
         """Get var components for all the vars.
 
         Returns:
@@ -294,3 +325,42 @@ class Store:
                 vals[key] = data
                 vars[key] = var
         return vars, vals
+
+
+def vars_to_multi_index_data(
+    lst: list[Var],
+) -> tuple[list[tuple[str, str]], list[str]]:
+    """Convert a list of Vars to MultiIndex data.
+
+    Args:
+        lst: List of Var objects.
+
+    Returns:
+        tuple[list[str], list[str]]: Tuple of two lists:
+            - List of variable names.
+            - List of variable units.
+    """
+    tuples = []
+    names = ["key", "name", "units"]
+    for var in lst:
+        tuples.append((var.key, var.name, var.units))
+    return tuples, names
+
+
+def to_df(var_dct: dict[str, Var], data_dct: dict[str, Any]) -> pd.DataFrame:
+    """Convert a dict of Vars and data to a pandas DataFrame.
+
+    Args:
+        var_dct: Dictionary mapping var keys to Var objects.
+        data_dct: Dictionary mapping var keys to data values.
+
+    Returns:
+        pd.DataFrame: DataFrame with MultiIndex columns based on Var metadata.
+    """
+    var_dct, data_dct = unpack(var_dct, data_dct)
+    var_list = [var_dct[key] for key in data_dct]
+    tuples, names = vars_to_multi_index_data(var_list)
+    columns = pd.MultiIndex.from_tuples(tuples, names=names)
+    df = pd.DataFrame(data_dct)
+    df.columns = columns
+    return df
