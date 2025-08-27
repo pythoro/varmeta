@@ -139,6 +139,28 @@ class Store:
         """Initialize the Store."""
         self.vars = {}
 
+    @classmethod
+    def from_dict(cls, var_data: dict[str, VarData]) -> Store:
+        """Create a Store from a dictionary of Var data.
+
+        Args:
+            var_data (dict[str, dict]): Mapping from var key to var
+                metadata dict.
+
+        Returns:
+            Store: Constructed Store instance.
+        """
+        store = cls()
+        for key, data in var_data.items():
+            if data["key"] != key:
+                raise ValueError(
+                    f"Key mismatch: dict key '{key}' does not match "
+                    + f"VarData key '{data['key']}'"
+                )
+            var = Var(**data)
+            store.add(var)
+        return store
+
     def add(self, var: Var) -> None:
         """Add a Var to the store.
 
