@@ -37,7 +37,9 @@ class TestDocExamples:
             desciption="Force vector",
             components=("x", "y", "z"),
         )
-        unpacked = force.unpack([10.0, 20.0, 30.0])
-        print(unpacked)
-        s = str(unpacked)
-        assert s == "{Force x [N]: 10.0, Force y [N]: 20.0, Force z [N]: 30.0}"
+        subvars, subvals = force.unpack([10.0, 20.0, 30.0])
+        print(subvars)
+        print(subvals)
+        s = str(subvars)
+        assert s == "[Force x [N], Force y [N], Force z [N]]"
+        assert subvals == [10.0, 20.0, 30.0]

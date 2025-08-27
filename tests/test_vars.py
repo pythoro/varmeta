@@ -99,17 +99,15 @@ class TestVar:
             components=("x", "y", "z"),
         )
         data = [[10, 11], [20, 21], [30, 31]]
-        unpacked = force.unpack(data)
-        print(unpacked)
-        packed_vars = list(unpacked.keys())
-        packed_data = list(unpacked.values())
-        assert len(packed_data) == 3
-        assert packed_data[0] == [10, 11]
-        assert packed_vars[0].name == "force x"
-        assert packed_data[1] == [20, 21]
-        assert packed_vars[1].name == "force y"
-        assert packed_data[2] == [30, 31]
-        assert packed_vars[2].name == "force z"
+        subvars, subvals = force.unpack(data)
+        print(subvars, subvals)
+        assert len(subvals) == 3
+        assert subvals[0] == [10, 11]
+        assert subvars[0].name == "force x"
+        assert subvals[1] == [20, 21]
+        assert subvars[1].name == "force y"
+        assert subvals[2] == [30, 31]
+        assert subvars[2].name == "force z"
 
     def test_unpack_axis_1(self):
         force = Var(
@@ -121,15 +119,13 @@ class TestVar:
             component_axis=1,
         )
         data = [[10, 11], [20, 21], [30, 31]]
-        unpacked = force.unpack(data)
-        print(unpacked)
-        packed_vars = list(unpacked.keys())
-        packed_data = list(unpacked.values())
-        assert len(packed_data) == 2
-        assert packed_data[0] == [10, 20, 30]
-        assert packed_vars[0].name == "force x"
-        assert packed_data[1] == [11, 21, 31]
-        assert packed_vars[1].name == "force y"
+        subvars, subvals = force.unpack(data)
+        print(subvars, subvals)
+        assert len(subvals) == 2
+        assert subvals[0] == [10, 20, 30]
+        assert subvars[0].name == "force x"
+        assert subvals[1] == [11, 21, 31]
+        assert subvars[1].name == "force y"
 
     def test_round_trip_dict(self):
         force = Var(
@@ -223,3 +219,35 @@ class TestStore:
         store = Store.from_dict(var_data)
         assert store.get("a").name == "A"
         assert store.get("b").units == "kg"
+
+    def test_store_unpack(self) -> None:
+        var_data: dict[str, VarData] = {
+            "a": {
+                "key": "a",
+                "name": "A",
+                "units": "m",
+                "desciption": "desc",
+                "components": ("x", "y"),
+                "component_axis": 0,
+            },
+            "b": {
+                "key": "b",
+                "name": "B",
+                "units": "kg",
+                "desciption": "desc",
+                "components": None,
+                "component_axis": 0,
+            },
+        }
+        store = Store.from_dict(var_data)
+        dct = {"a": [5.0, 6.0], "b": 10.0}
+        vars, vals = store.unpack(dct)
+        print(vars, vals)
+        assert len(vars) == 3
+        assert len(vals) == 3
+        assert vals["a_x"] == 5.0
+        assert vars["a_x"].name == "A x"
+        assert vals["a_y"] == 6.0
+        assert vars["a_y"].name == "A y"
+        assert vals["b"] == 10.0
+        assert vars["b"].name == "B"

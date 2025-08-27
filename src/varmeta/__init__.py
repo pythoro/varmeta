@@ -5,7 +5,7 @@ component support, enabling robust metadata handling, serialization, and
 integration with pandas and other tools.
 """
 
-from .vals import Val, ValDict, ValList
+from .vals import Val, ValList
 from .vars import Var
 
 __version__ = "0.0.1"

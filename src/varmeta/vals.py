@@ -7,7 +7,7 @@ from typing import Generic, TypeVar
 import numpy as np
 from numpy.typing import NDArray
 
-from .vars import Store, Var
+from .vars import Var
 
 T = TypeVar("T")
 
@@ -38,10 +38,10 @@ class Val(Generic[T]):  # NoQA: UP046
 
     def unpack(self) -> list[Val[T]]:
         """Unpack the Val if its Var has components."""
-        dct = self.var.unpack(self.data)
         lst = []
-        for var, data in dct.items():
-            val: Val[T] = Val(data, var)  # type: ignore
+        tuples = self.var.unpack_tuples(self.data)
+        for subvar, subval in tuples:
+            val: Val[T] = Val(subval, subvar)  # type: ignore
             lst.append(val)
         return lst
 
@@ -238,146 +238,3 @@ class ValList(list):
         for val in self:
             vals.extend(val.unpack())
         return ValList(*vals)
-
-
-class ValDict(dict[Var, object]):
-    """A dict of Var: data pairs. Keys must be Var instances."""
-
-    _store: Store
-
-    def __init__(self, *args: object, **kwargs: object) -> None:
-        """Initialize a ValDict.
-
-        Args:
-            *args: Positional arguments for dict initialization.
-            **kwargs: Keyword arguments for dict initialization.
-
-        Raises:
-            TypeError: If keys are not Var instances.
-        """
-        self._store = Store()
-        super().__init__()
-        if len(args) > 0:
-            if len(args) > 1:
-                raise TypeError(
-                    f"ValDict expected at most 1 argument, got {len(args)}"
-                )
-            other = args[0]
-            if hasattr(other, "items"):
-                for k, v in other.items():  # type: ignore
-                    self[k] = v
-            else:
-                for k, v in other:  # type: ignore
-                    self[k] = v
-        for k, v in kwargs.items():
-            self[k] = v  # type: ignore
-
-    @classmethod
-    def from_dicts(
-        cls, data_dict: dict[str, object], var_data: dict[str, dict]
-    ) -> ValDict:
-        """Create a ValDict from data and variable metadata dicts.
-
-        Args:
-            data_dict (dict[str, object]): Mapping from var key to value.
-            var_data (dict[str, dict]): Mapping from var key to var
-                metadata dict.
-
-        Returns:
-            ValDict: Constructed ValDict instance.
-        """
-        var_dct = {key: Var(**data) for key, data in var_data.items()}
-        dct = {var_dct[key]: data for key, data in data_dict.items()}
-        return cls(dct)
-
-    def __setitem__(self, var: Var, data: object) -> None:
-        """Set a value in the ValDict.
-
-        Args:
-            var (Var): The Var key.
-            data (object): The value to set.
-
-        Raises:
-            TypeError: If key is not a Var instance.
-        """
-        if not isinstance(var, Var):
-            raise TypeError(
-                f"ValDict keys must be Var instances, got {type(var)}"
-            )
-        super().__setitem__(var, data)
-        self._store.add(var)
-
-    def update(self, *args: object, **kwargs: object) -> None:
-        """Update the ValDict with new values.
-
-        Args:
-            *args: Positional arguments for dict update.
-            **kwargs: Keyword arguments for dict update.
-
-        Raises:
-            TypeError: If keys are not Var instances.
-        """
-        if len(args) > 0:
-            if len(args) > 1:
-                raise TypeError(
-                    f"update expected at most 1 argument, got {len(args)}"
-                )
-            other = args[0]
-            if hasattr(other, "items"):
-                for k, v in other.items():  # type: ignore
-                    self[k] = v
-            else:
-                for k, v in other:  # type: ignore
-                    self[k] = v
-        for k, v in kwargs.items():
-            self[k] = v  # type: ignore
-
-    def unpack(self) -> ValDict:
-        """Unpack all Val objects in the set.
-
-        Returns:
-            ValDict: A new ValDict with unpacked values.
-        """
-        vals = {}
-        for var, data in self.items():
-            subdict = var.unpack(data)
-            vals.update(subdict)  # type: ignore
-        return ValDict(vals)
-
-    def find_var(self, key: str) -> Var:
-        """Get a Var by its key.
-
-        Args:
-            key (str): The key of the Var.
-
-        Returns:
-            Var: The Var instance.
-        """
-        return self._store.get(key)
-
-    def find(self, key: str) -> object:
-        """Get a data by its key.
-
-        Args:
-            key (str): The key of the Var.
-
-        Returns:
-            object: The value associated with the Var.
-        """
-        return self[self._store.get(key)]
-
-    def to_dict(self) -> dict:
-        """Convert the ValDict to a regular dict.
-
-        Returns:
-            dict: Dictionary mapping Var keys to values.
-        """
-        return {var.key: data for var, data in self.items()}
-
-    def var_data(self) -> dict:
-        """Return a dictionary of Var object data.
-
-        Returns:
-            dict: Dictionary mapping Var keys to Var metadata dicts.
-        """
-        return self._store.to_dict()

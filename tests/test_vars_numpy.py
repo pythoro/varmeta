@@ -16,17 +16,15 @@ class TestVar:
             components=("x", "y", "z"),
         )
         data = np.array([[10, 11], [20, 21], [30, 31]])
-        unpacked = force.unpack(data)
-        print(unpacked)
-        packed_vars = list(unpacked.keys())
-        packed_data = list(unpacked.values())
-        assert len(unpacked) == 3
-        assert_array_equal(packed_data[0], np.array([10, 11]))
-        assert packed_vars[0].name == "force x"
-        assert_array_equal(packed_data[1], np.array([20, 21]))
-        assert packed_vars[1].name == "force y"
-        assert_array_equal(packed_data[2], np.array([30, 31]))
-        assert packed_vars[2].name == "force z"
+        subvars, subvals = force.unpack(data)
+        print(subvars, subvals)
+        assert len(subvals) == 3
+        assert_array_equal(subvals[0], np.array([10, 11]))
+        assert subvars[0].name == "force x"
+        assert_array_equal(subvals[1], np.array([20, 21]))
+        assert subvars[1].name == "force y"
+        assert_array_equal(subvals[2], np.array([30, 31]))
+        assert subvars[2].name == "force z"
 
     def test_numpy_unpack_axis_1(self):
         force = Var(
@@ -38,12 +36,10 @@ class TestVar:
             component_axis=1,
         )
         data = np.array([[10, 11], [20, 21], [30, 31]])
-        unpacked = force.unpack(data)
-        print(unpacked)
-        packed_vars = list(unpacked.keys())
-        packed_data = list(unpacked.values())
-        assert len(packed_data) == 2
-        assert_array_equal(packed_data[0], np.array([10, 20, 30]))
-        assert packed_vars[0].name == "force x"
-        assert_array_equal(packed_data[1], np.array([11, 21, 31]))
-        assert packed_vars[1].name == "force y"
+        subvars, subvals = force.unpack(data)
+        print(subvars, subvals)
+        assert len(subvals) == 2
+        assert_array_equal(subvals[0], np.array([10, 20, 30]))
+        assert subvars[0].name == "force x"
+        assert_array_equal(subvals[1], np.array([11, 21, 31]))
+        assert subvars[1].name == "force y"

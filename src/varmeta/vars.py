@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from typing import NotRequired, TypedDict
 
 import numpy as np
+from numpy.typing import NDArray
 
 
 class VarData(TypedDict):
@@ -113,7 +114,7 @@ class Var:
             for comp in self.components
         ]
 
-    def unpack(self, data: object) -> dict[Var, object]:
+    def unpack(self, data: object) -> tuple[list[Var], list[object] | NDArray]:
         """Unpack the value into component variables.
 
         Args:
@@ -135,21 +136,35 @@ class Var:
             raise ValueError("Data must be at least 1-dimensional to unpack.")
         if data_array.ndim == 1:
             # Ignore the axis as there's only one dimension
-            packed_vals = data_array
+            subvals = data_array
         elif self.component_axis > data_array.ndim - 1:
             raise ValueError(
                 f"Component axis {self.component_axis} is out of bounds for"
                 + " data with {data_array.ndim} dimensions."
             )
         else:
-            packed_vals = np.moveaxis(data_array, self.component_axis, 0)  # type: ignore
+            subvals = np.moveaxis(data_array, self.component_axis, 0)  # type: ignore
         if not isinstance(data, np.ndarray):
-            packed_vals = packed_vals.tolist()
-        packed_vars = self.component_vars()
-        unpacked_dict = {}
-        for val, var in zip(packed_vals, packed_vars, strict=True):
-            unpacked_dict[var] = val
-        return unpacked_dict
+            subvals = subvals.tolist()
+        subvars = self.component_vars()
+        return subvars, subvals
+
+    def unpack_tuples(self, data: object) -> list[tuple[Var, object]]:
+        """Unpack the value into component variables.
+
+        Args:
+            data (Any): The data to unpack (should be array-like).
+
+        Returns:
+            list[tuple[Var, object]]: List of tuples of component Var and
+            unpacked value.
+
+        Raises:
+            ValueError: If no components to unpack or data is not iterable.
+        """
+        packed_vars, packed_vals = self.unpack(data)
+        tuples = list(zip(packed_vars, packed_vals, strict=True))
+        return tuples
 
 
 class Store:
@@ -201,6 +216,18 @@ class Store:
                 + f"New:\n{var.key}"
             )
         self.vars[var.key] = var
+        # Also add component vars if they exist
+        if var.components is not None:
+            for comp_var in var.component_vars():
+                if (
+                    comp_var.key in self.vars
+                    and self.vars[comp_var.key] != comp_var
+                ):
+                    raise KeyError(
+                        "Duplicate key detected. \nExisting:\n"
+                        + f"{self.vars[comp_var.key]}\nNew:\n{comp_var}"
+                    )
+                self.vars[comp_var.key] = comp_var
 
     def get(self, key: str) -> Var:
         """Get a Var by its key.
@@ -242,3 +269,28 @@ class Store:
             dict[str, VarData]: Dictionary mapping keys to Var data dicts.
         """
         return {var.key: var.to_dict() for var in self.vars.values()}
+
+    def unpack(
+        self, dct: dict[str, object]
+    ) -> tuple[dict[str, Var], dict[str, object]]:
+        """Get var components for all the vars.
+
+        Returns:
+            tuple[dict[str, Var], dict[str, object]]: Tuple of two dicts:
+                - Mapping from var key to Var object (including components).
+                - Mapping from var key to unpacked data values.
+        """
+        vars = {}
+        vals = {}
+        for key, data in dct.items():
+            var = self.vars[key]
+            subvars = var.component_vars()
+            if subvars:
+                tuples = var.unpack_tuples(data)
+                for subvar, subval in tuples:
+                    vals[subvar.key] = subval
+                    vars[subvar.key] = subvar
+            else:
+                vals[key] = data
+                vars[key] = var
+        return vars, vals
