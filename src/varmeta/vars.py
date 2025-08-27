@@ -75,6 +75,24 @@ class Var:
             "data_type": self.data_type,
         }
 
+    def validate(self, data: object, raise_type_error: bool = True) -> bool:
+        """Validate that the data matches the Var's data_type.
+
+        Args:
+            data (object): The data to validate.
+            raise_type_error (bool): If True, raise TypeError on mismatch.
+
+        Returns:
+            bool: True if data matches the Var's data_type, False otherwise.
+        """
+        if self.data_type is None or self.data_type == "object":
+            return True
+        if type(data).__name__ != self.data_type:
+            if raise_type_error:
+                raise TypeError(f"Expected {self.data_type}, got {type(data)}")
+            return False
+        return True
+
     def component_vars(self) -> list[Var]:
         """Return a list of component variables.
 
