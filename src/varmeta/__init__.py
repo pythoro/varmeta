@@ -6,7 +6,7 @@ integration with pandas and other tools.
 """
 
 from .vals import Val, ValList
-from .vars import Store, Var, to_df, vars_to_multi_index_data
+from .vars import Var, VarData, to_df, vars_to_multi_index_data
 
 __version__ = "0.0.1"
 
@@ -14,7 +14,7 @@ __all__ = [
     "Var",
     "Val",
     "ValList",
-    "Store",
     "vars_to_multi_index_data",
     "to_df",
+    "VarData",
 ]
