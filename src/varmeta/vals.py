@@ -2,10 +2,17 @@
 
 from __future__ import annotations
 
+from typing import Generic, TypeVar
+
+import numpy as np
+from numpy.typing import NDArray
+
 from .vars import Store, Var
 
+T = TypeVar("T")
 
-class Val:
+
+class Val(Generic[T]):  # NoQA: UP046
     """A value associated with a Var object.
 
     Attributes:
@@ -13,32 +20,138 @@ class Val:
         var (Var): The associated Var instance.
     """
 
-    def __init__(self, data: object, var: Var) -> None:
-        """Initialize a Val instance.
+    def __init__(self, data: T, var: Var) -> None:
+        """Initialize a Val.
 
         Args:
-            data (object): The value data.
+            data (T): The value data.
             var (Var): The associated Var instance.
         """
+        if var.data_type != "object" and type(data).__name__ != var.data_type:
+            raise TypeError(f"Expected {var.data_type}, got {type(data)}")
         self.data = data
         self.var = var
 
     def __repr__(self) -> str:
-        """Return a string representation of the Val.
-
-        Returns:
-            str: String representation.
-        """
+        """Return a string representation of the Val."""
         return f"Val(data={self.data!r}, var={self.var})"
 
-    def unpack(self) -> list[Val]:
-        """Unpack the data components into a list of Val items.
-
-        Returns:
-            list[Val]: List of unpacked Val objects.
-        """
+    def unpack(self) -> list[Val[T]]:
+        """Unpack the Val if its Var has components."""
         dct = self.var.unpack(self.data)
-        return [Val(data, var) for var, data in dct.items()]
+        lst = []
+        for var, data in dct.items():
+            val: Val[T] = Val(data, var)  # type: ignore
+            lst.append(val)
+        return lst
+
+
+# Type-restricted Val subclasses
+class IntVal(Val):
+    """A Val subclass for integer values."""
+
+    def __init__(self, data: int, var: Var) -> None:
+        """Initialize an IntVal.
+
+        Args:
+            data (int): The integer value.
+            var (Var): The associated Var instance.
+        """
+        if not isinstance(data, int):
+            raise TypeError(f"IntVal expects int data, got {type(data)}")
+        super().__init__(data, var)
+
+
+class FloatVal(Val):
+    """A Val subclass for float values."""
+
+    def __init__(self, data: float, var: Var) -> None:
+        """Initialize a FloatVal.
+
+        Args:
+            data (float): The float value.
+            var (Var): The associated Var instance.
+        """
+        if not isinstance(data, float):
+            raise TypeError(f"FloatVal expects float data, got {type(data)}")
+        super().__init__(data, var)
+
+
+class StrVal(Val):
+    """A Val subclass for str values."""
+
+    def __init__(self, data: str, var: Var) -> None:
+        """Initialize a StrVal.
+
+        Args:
+            data (str): The string value.
+            var (Var): The associated Var instance.
+        """
+        if not isinstance(data, str):
+            raise TypeError(f"StrVal expects str data, got {type(data)}")
+        super().__init__(data, var)
+
+
+class BoolVal(Val):
+    """A Val subclass for bool values."""
+
+    def __init__(self, data: bool, var: Var) -> None:
+        """Initialize a BoolVal.
+
+        Args:
+            data (bool): The boolean value.
+            var (Var): The associated Var instance.
+        """
+        if not isinstance(data, bool):
+            raise TypeError(f"BoolVal expects bool data, got {type(data)}")
+        super().__init__(data, var)
+
+
+class ListVal(Val):
+    """A Val subclass for list values."""
+
+    def __init__(self, data: list, var: Var) -> None:
+        """Initialize a ListVal.
+
+        Args:
+            data (list): The list.
+            var (Var): The associated Var instance.
+        """
+        if not isinstance(data, list):
+            raise TypeError(f"ListVal expects list data, got {type(data)}")
+        super().__init__(data, var)
+
+
+class DictVal(Val):
+    """A Val subclass for dict values."""
+
+    def __init__(self, data: dict, var: Var) -> None:
+        """Initialize a DictVal.
+
+        Args:
+            data (dict): The dictionary.
+            var (Var): The associated Var instance.
+        """
+        if not isinstance(data, dict):
+            raise TypeError(f"DictVal expects dict data, got {type(data)}")
+        super().__init__(data, var)
+
+
+class NDArrayVal(Val):
+    """A Val subclass for numpy array values."""
+
+    def __init__(self, data: NDArray, var: Var) -> None:
+        """Initialize a numpy NDArray.
+
+        Args:
+            data (NDArray): The array.
+            var (Var): The associated Var instance.
+        """
+        if not isinstance(data, np.ndarray):
+            raise TypeError(
+                f"NumpyArrayVal expects np.ndarray data, got {type(data)}"
+            )
+        super().__init__(data, var)
 
 
 class ValList(list):

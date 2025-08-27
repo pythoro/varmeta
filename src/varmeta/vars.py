@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TypedDict
+from typing import NotRequired, TypedDict
 
 import numpy as np
 
@@ -17,6 +17,7 @@ class VarData(TypedDict):
     desciption: str
     components: tuple[str, ...] | None
     component_axis: int
+    data_type: NotRequired[str | None]
 
 
 @dataclass(frozen=True, order=True)
@@ -38,6 +39,7 @@ class Var:
     desciption: str
     components: tuple[str, ...] | None
     component_axis: int = 0
+    data_type: str | None = "object"
 
     def __str__(self) -> str:
         """Return a string representation of the variable.
@@ -70,6 +72,7 @@ class Var:
             "desciption": self.desciption,
             "components": self.components,
             "component_axis": self.component_axis,
+            "data_type": self.data_type,
         }
 
     def component_vars(self) -> list[Var]:
@@ -87,6 +90,7 @@ class Var:
                 units=self.units,
                 desciption=self.desciption,
                 components=None,
+                data_type=self.data_type,
             )
             for comp in self.components
         ]

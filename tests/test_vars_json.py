@@ -17,7 +17,7 @@ class TestVarJson:
         print(dump)
         assert (
             dump
-            == '{"key": "temp", "name": "temperature", "units": "Celsius", "desciption": "Ambient temperature", "components": null, "component_axis": 0}'  # NoQA: E501
+            == '{"key": "temp", "name": "temperature", "units": "Celsius", "desciption": "Ambient temperature", "components": null, "component_axis": 0, "data_type": "object"}'  # NoQA: E501
         )
 
     def test_var_dump_components(self):
@@ -34,5 +34,5 @@ class TestVarJson:
         print(dump)
         assert (
             dump
-            == '{"key": "temp", "name": "temperature", "units": "Celsius", "desciption": "Ambient temperature", "components": ["x", "y", "z"], "component_axis": 1}'  # NoQA: E501
+            == '{"key": "temp", "name": "temperature", "units": "Celsius", "desciption": "Ambient temperature", "components": ["x", "y", "z"], "component_axis": 1, "data_type": "object"}'  # NoQA: E501
         )
