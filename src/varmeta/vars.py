@@ -200,11 +200,13 @@ def unpack(
 
 def vars_to_multi_index_data(
     lst: list[Var],
+    attrs: list[str] | None = None,
 ) -> tuple[list[tuple[str, str]], list[str]]:
     """Convert a list of Vars to MultiIndex data.
 
     Args:
         lst: List of Var objects.
+        attrs: List of Var attributes to use for MultiIndex levels.
 
     Returns:
         tuple[list[str], list[str]]: Tuple of two lists:
@@ -212,25 +214,30 @@ def vars_to_multi_index_data(
             - List of variable units.
     """
     tuples = []
-    names = ["key", "name", "units"]
+    attrs = ["key", "name", "units"] if attrs is None else attrs
     for var in lst:
-        tuples.append((var.key, var.name, var.units))
-    return tuples, names
+        tuples.append(tuple([getattr(var, attr) for attr in attrs]))
+    return tuples, attrs
 
 
-def to_df(var_dct: dict[str, Var], data_dct: dict[str, Any]) -> pd.DataFrame:
+def to_df(
+    var_dct: dict[str, Var],
+    data_dct: dict[str, Any],
+    attrs: list[str] | None = None,
+) -> pd.DataFrame:
     """Convert a dict of Vars and data to a pandas DataFrame.
 
     Args:
         var_dct: Dictionary mapping var keys to Var objects.
         data_dct: Dictionary mapping var keys to data values.
+        attrs: List of Var attributes to use for MultiIndex levels.
 
     Returns:
         pd.DataFrame: DataFrame with MultiIndex columns based on Var metadata.
     """
     var_dct, data_dct = unpack(var_dct, data_dct)
     var_list = [var_dct[key] for key in data_dct]
-    tuples, names = vars_to_multi_index_data(var_list)
+    tuples, names = vars_to_multi_index_data(var_list, attrs=attrs)
     columns = pd.MultiIndex.from_tuples(tuples, names=names)
     df = pd.DataFrame(data_dct)
     df.columns = columns
