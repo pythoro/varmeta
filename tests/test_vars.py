@@ -2,7 +2,7 @@
 
 import pytest
 
-from varmeta.vars import Store, Var
+from varmeta.vars import Store, Var, VarData
 
 
 class TestVar:
@@ -202,23 +202,23 @@ class TestStore:
         assert dct["a"]["units"] == "m"
 
     def test_from_dict(self) -> None:
-        var_data = {
-            "a": dict(
-                key="a",
-                name="A",
-                units="m",
-                desciption="desc",
-                components=None,
-                component_axis=0,
-            ),
-            "b": dict(
-                key="b",
-                name="B",
-                units="kg",
-                desciption="desc",
-                components=None,
-                component_axis=0,
-            ),
+        var_data: dict[str, VarData] = {
+            "a": {
+                "key": "a",
+                "name": "A",
+                "units": "m",
+                "desciption": "desc",
+                "components": None,
+                "component_axis": 0,
+            },
+            "b": {
+                "key": "b",
+                "name": "B",
+                "units": "kg",
+                "desciption": "desc",
+                "components": None,
+                "component_axis": 0,
+            },
         }
         store = Store.from_dict(var_data)
         assert store.get("a").name == "A"

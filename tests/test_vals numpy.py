@@ -45,7 +45,7 @@ class TestValDict:
 
         unpacked_dct = dct.unpack()
         print(unpacked_dct)
-        print(unpacked_dct.get("F_x"))
+        print(unpacked_dct.find("F_x"))
         assert len(unpacked_dct) == 3
         assert_array_equal(unpacked_dct.find("F_x"), np.array([10, 11]))
         assert unpacked_dct.find_var("F_x").name == "force x"

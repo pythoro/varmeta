@@ -127,7 +127,7 @@ class ValList(list):
         return ValList(*vals)
 
 
-class ValDict(dict):
+class ValDict(dict[Var, object]):
     """A dict of Var: data pairs. Keys must be Var instances."""
 
     _store: Store
