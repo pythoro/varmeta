@@ -2,7 +2,7 @@
 
 import pandas as pd
 
-from varmeta import Var, to_df, vars_to_multi_index_data
+from varmeta import Var, dict_to_df, records_to_df, vars_to_multi_index_data
 
 
 class Test_Pandas_Integration:
@@ -107,7 +107,7 @@ class Test_Pandas_Integration:
         )
         assert csv_output == expected_csv
 
-    def test_to_df(self):
+    def test_dict_to_df(self):
         var = Var(
             key="insol",
             name="solar radiation",
@@ -122,9 +122,9 @@ class Test_Pandas_Integration:
             desciption="Mass of the object",
             components=None,
         )
-        vars = {"insol": var, "m": var2}
-        data = {"insol": [200, 300], "m": [3, 4]}
-        df = to_df(vars, data)
+        var_dct = {"insol": var, "m": var2}
+        data_dct = {"insol": [200, 300], "m": [3, 4]}
+        df = dict_to_df(var_dct, data_dct)
         print(df)
         csv_output = df.to_csv(index=False, lineterminator="\n")
         print(csv_output)
@@ -133,13 +133,14 @@ class Test_Pandas_Integration:
         )
         assert csv_output == expected_csv
 
-    def test_to_df_with_unpack(self):
+    def test_dict_to_df_with_unpack(self):
         var = Var(
             key="insol",
             name="solar radiation",
             units="W/m^2",
             desciption="Solar radiation at surface",
             components=("morning", "afternoon"),
+            component_axis=1,
         )
         var2 = Var(
             key="m",
@@ -148,11 +149,39 @@ class Test_Pandas_Integration:
             desciption="Mass of the object",
             components=None,
         )
-        vars = {"insol": var, "m": var2}
-        data = {"insol": [[200, 250], [300, 350]], "m": [3, 4]}
-        df = to_df(vars, data)
+        var_dct = {"insol": var, "m": var2}
+        data_dct = {"insol": [[200, 250], [300, 350]], "m": [3, 4]}
+        df = dict_to_df(var_dct, data_dct)
         print(df)
         csv_output = df.to_csv(index=False, lineterminator="\n")
         print(csv_output)
-        expected_csv = "insol_morning,insol_afternoon,m\nsolar radiation morning,solar radiation afternoon,mass\nW/m^2,W/m^2,kg\n200,300,3\n250,350,4\n"  # NoQA: E501
+        expected_csv = "insol_morning,insol_afternoon,m\nsolar radiation morning,solar radiation afternoon,mass\nW/m^2,W/m^2,kg\n200,250,3\n300,350,4\n"  # NoQA: E501
+        assert csv_output == expected_csv
+
+    def test_records_to_df_with_unpack(self):
+        var = Var(
+            key="insol",
+            name="solar radiation",
+            units="W/m^2",
+            desciption="Solar radiation at surface",
+            components=("morning", "afternoon"),
+            component_axis=1,
+        )
+        var2 = Var(
+            key="m",
+            name="mass",
+            units="kg",
+            desciption="Mass of the object",
+            components=None,
+        )
+        var_dct = {"insol": var, "m": var2}
+        data_dict_lst = [
+            {"insol": [200, 250], "m": 3},
+            {"insol": [300, 350], "m": 4},
+        ]
+        df = records_to_df(var_dct, data_dict_lst)
+        print(df)
+        csv_output = df.to_csv(index=False, lineterminator="\n")
+        print(csv_output)
+        expected_csv = "insol_morning,insol_afternoon,m\nsolar radiation morning,solar radiation afternoon,mass\nW/m^2,W/m^2,kg\n200,250,3\n300,350,4\n"  # NoQA: E501
         assert csv_output == expected_csv

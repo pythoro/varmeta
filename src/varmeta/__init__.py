@@ -6,7 +6,14 @@ integration with pandas and other tools.
 """
 
 from .vals import Val, ValList
-from .vars import Var, VarData, to_df, vars_to_multi_index_data
+from .vars import (
+    Var,
+    VarData,
+    dict_to_df,
+    records_to_df,
+    unpack,
+    vars_to_multi_index_data,
+)
 
 __version__ = "0.0.1"
 
@@ -15,6 +22,8 @@ __all__ = [
     "Val",
     "ValList",
     "vars_to_multi_index_data",
-    "to_df",
+    "dict_to_df",
     "VarData",
+    "records_to_df",
+    "unpack",
 ]

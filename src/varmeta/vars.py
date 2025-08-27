@@ -6,12 +6,8 @@ from dataclasses import dataclass, field
 from typing import Any, NotRequired, TypedDict
 
 import numpy as np
+import pandas as pd
 from numpy.typing import NDArray
-
-try:
-    import pandas as pd
-except ImportError:
-    pd = None
 
 
 class VarData(TypedDict):
@@ -220,7 +216,7 @@ def vars_to_multi_index_data(
     return tuples, attrs
 
 
-def to_df(
+def dict_to_df(
     var_dct: dict[str, Var],
     data_dct: dict[str, Any],
     attrs: list[str] | None = None,
@@ -240,5 +236,37 @@ def to_df(
     tuples, names = vars_to_multi_index_data(var_list, attrs=attrs)
     columns = pd.MultiIndex.from_tuples(tuples, names=names)
     df = pd.DataFrame(data_dct)
+    df.columns = columns
+    return df
+
+
+def records_to_df(
+    var_dct: dict[str, Var],
+    data_dict_lst: list[dict[str, Any]],
+    attrs: list[str] | None = None,
+) -> pd.DataFrame:
+    """Convert Vars and a list of records of data to a pandas DataFrame.
+
+    Args:
+        var_dct: Dictionary mapping var keys to Var objects.
+        data_dict_lst: List of dictionaries mapping var keys to data values.
+        attrs: List of Var attributes to use for MultiIndex levels.
+
+    Returns:
+        pd.DataFrame: DataFrame with MultiIndex columns based on Var metadata.
+    """
+    var_list = None
+    unpacked = []
+    for data_dct in data_dict_lst:
+        print(data_dct)
+        unpacked_var_dct, subdata_dct = unpack(var_dct, data_dct)
+        if var_list is None:
+            var_list = [unpacked_var_dct[key] for key in subdata_dct]
+        unpacked.append(subdata_dct)
+    if var_list is None:
+        raise ValueError("No data or malformed data provided.")
+    tuples, names = vars_to_multi_index_data(var_list, attrs=attrs)
+    columns = pd.MultiIndex.from_tuples(tuples, names=names)
+    df = pd.DataFrame.from_records(unpacked)
     df.columns = columns
     return df

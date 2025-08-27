@@ -9,6 +9,7 @@ authors = [
 requires-python = ">=3.13"
 dependencies = [
     "numpy>=1.11.0",
+    "pandas>=2.3.1",
 ]
 
 [project.scripts]
@@ -20,7 +21,6 @@ build-backend = "hatchling.build"
 
 [dependency-groups]
 dev = [
-    "pandas>=2.3.1",
     "pytest>=8.4.1",
     "ruff>=0.12.9",
 ]
