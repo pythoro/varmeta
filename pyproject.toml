@@ -36,6 +36,4 @@ select = ["E", "F", "B", "C90", "I", "UP", "SIM", "D", "ANN"]
 convention = "google"
 
 [tool.ruff.lint.per-file-ignores]
-"__init__.py" = ["F401", "E402"]
-# Selectively ignore annotation and documentation on older modules.
 "tests/*" = ["ANN", "D"]
