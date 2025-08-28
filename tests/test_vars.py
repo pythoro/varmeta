@@ -101,11 +101,11 @@ class TestVar:
         print(subvars, subvals)
         assert len(subvals) == 3
         assert subvals[0] == [10, 11]
-        assert subvars[0].name == "force x"
+        assert subvars[0].name == "force - x"
         assert subvals[1] == [20, 21]
-        assert subvars[1].name == "force y"
+        assert subvars[1].name == "force - y"
         assert subvals[2] == [30, 31]
-        assert subvars[2].name == "force z"
+        assert subvars[2].name == "force - z"
 
     def test_unpack_axis_1(self):
         force = Var(
@@ -121,9 +121,9 @@ class TestVar:
         print(subvars, subvals)
         assert len(subvals) == 2
         assert subvals[0] == [10, 20, 30]
-        assert subvars[0].name == "force x"
+        assert subvars[0].name == "force - x"
         assert subvals[1] == [11, 21, 31]
-        assert subvars[1].name == "force y"
+        assert subvars[1].name == "force - y"
 
     def test_round_trip_dict(self):
         force = Var(

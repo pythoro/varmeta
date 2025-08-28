@@ -1,27 +1,32 @@
 
 # varmeta
 
-`varmeta` is a lightweight Python package for managing variables and their metadata in scientific, engineering, and data analysis workflows. It provides a robust way to associate units, descriptions, and component structure with variables, making them hashable and easy to use as dictionary keys, DataFrame columns, or for serialization. The package is especially useful for handling vector/tensor variables (e.g., x, y, z components) and for keeping metadata and values tightly coupled.
+`varmeta` is a small and lightweight Python package for managing and using variable metadata in scientific, engineering, and data analysis workflows in outputs. It's designed with type safety in mind for use with modern IDEs like VSCode + pylance.
 
 ## Purpose
 
-`varmeta` solves the problem of keeping variable metadata (units, descriptions, components) in one place, while making variables easy to use in code. It enables:
+We often have variables with several components (e.g. x, y, and z components). We want to use them as lists or arrays, but tabulate them nicely for outputs. `varmeta` solves this problem in a simple way. 
 
-- Hashable variable objects for use as dict keys or DataFrame columns
-- Automatic handling of variables with components (e.g., vector/tensor variables)
-- Easy unpacking of values into labeled components
-- Consistent serialization and deserialization of variable metadata
+- Set up a dictionary of Var instances, with string keys.
+- Set up matching dictionaries of data.
+- Create pandas dataframes with nice multi-index headings containing not just the variable keys, but also their names and units, OR:
+- Split variables into components automatically for other uses.
 
 ## Quick-start tutorial
 
 ### 1. Define variables with metadata
 
+Let's first set up some imports, constants, and Var instances. 
+
 ```python
-from varmeta.vars import Var
+import varmeta as vm
+
+TEMP = "temperature"
+FORCE = "force"
 
 # Scalar variable
-temperature = Var(
-	key="temp",
+temperature = vm.Var(
+	key=TEMP,
 	name="Temperature",
 	units="Celsius",
 	desciption="Ambient temperature",
@@ -29,85 +34,110 @@ temperature = Var(
 )
 
 # Vector variable (e.g., 3D force)
-force = Var(
-	key="F",
+force = vm.Var(
+	key=FORCE,
 	name="Force",
 	units="N",
 	desciption="Force vector",
-	components=("x", "y", "z")
+	components=("x", "y", "z"),
+	component_axis=1
 )
 ```
 
-### 2. Use variables as dictionary keys
+### 2. Use literal keys for Var and data dictionaries
+
+Use shared literal string keys for dictionaries of Var instances and
+data dictionaries.
 
 ```python
-data = {
-	temperature: 25.0,
-	force: [10.0, 20.0, 30.0]
+data_dct = {
+	TEMP: 25.0,
+	FORCE: [10.0, 20.0, 30.0]
 }
-print(data)
-# Output:
-# {Temperature [Celsius]: 25.0, Force [N]: [10.0, 20.0, 30.0]}
+
+var_dct = {
+	TEMP: temperature,
+	FORCE: force
+}
 ```
 
-### 3. Unpack variables with components
+### 3. Unpack data with components
 
 ```python
-# Using the Var API directly
-unpacked = force.unpack([10.0, 20.0, 30.0])
-print(unpacked)
-# Output:
-# {Force x [N]: 10.0, Force y [N]: 20.0, Force z [N]: 30.0}
+vars, vals = vm.unpack(var_dct, data_dct)
+print(vars)
+# {'temp': Temperature [Celsius], 'force_x': Force - x [N], 'force_y': Force - y [N], 'force_z': Force - z [N]}
+print(vals)
+# {'temp': 25.0, 'force_x': 10.0, 'force_y': 20.0, 'force_z': 30.0}
 ```
 
-### 4. Store values and variables together
+### 5. Tabulate dict-based data into pandas DataFrames
+
+It's easy to tabulate data into a DataFrame. Data is automatically unpacked,
+even numpy arrays!
 
 ```python
-from varmeta.vals import Val, ValList, ValDict
-
-# Single value
-val = Val(data=25.0, var=temperature)
-
-# List of values
-val_list = ValList(
-	Val(data=10.0, var=force),
-	Val(data=20.0, var=force),
-	Val(data=30.0, var=force)
-)
-
-# Dictionary of variables and values
-val_dict = ValDict({temperature: 25.0, force: [10.0, 20.0, 30.0]})
-```
-
-### 5. Use with pandas DataFrames
-
-```python
-import pandas as pd
-from varmeta.vars import Var
-
-var1 = Var(key="solar_radiation", name="Solar Radiation", units="W/m^2", desciption="Solar radiation at surface", components=None)
-var2 = Var(key="mass", name="Mass", units="kg", desciption="Mass of the object", components=None)
-df = pd.DataFrame({var1: [200, 300], var2: [3, 4]})
+data_dct = {FORCE: [[200, 250, -30], [300, 350, -100]], TEMP: [30, 40]}
+df = vm.dict_to_df(var_dct, data_dct)
 print(df)
-# Output:
-#    Solar Radiation [W/m^2]  Mass [kg]
-# 0                  200         3
-# 1                  300         4
+# key     force_x   force_y   force_z        temp
+# name  Force - x Force - y Force - z Temperature
+# units         N         N         N     Celsius
+# 0           200       250       -30          30
+# 1           300       350      -100          40
+data_dct = {TEMP: [30, 40], FORCE: [[200, 250, -30], [300, 350, -100]]}
+df = vm.dict_to_df(var_dct, data_dct)
+print(df)
+# key          temp   force_x   force_y   force_z
+# name  Temperature Force - x Force - y Force - z
+# units     Celsius         N         N         N
+# 0              30       200       250       -30
+# 1              40       300       350      -100
 ```
 
-### 6. Serialize and deserialize variable metadata
+### 6. Tabulate records easily
+
+Say we'd had many records instead. We can make tables with lists of data
+in dictionaries, unpacking each automatically, like this:
 
 ```python
-# Serialize
-var_dict = force.to_dict()
-
-# Deserialize
-force2 = Var(**var_dict)
-assert force == force2
+data_dict_lst = [
+	{FORCE: [200, 250, -30], TEMP: 30},
+	{FORCE: [300, 350, -100], TEMP: 40},
+]
+df = vm.records_to_df(var_dct, data_dict_lst)
+print(df)
+# key     force_x   force_y   force_z        temp
+# name  Force - x Force - y Force - z Temperature
+# units         N         N         N     Celsius
+# 0           200       250       -30          30
+# 1           300       350      -100          40
 ```
 
-## More
+## Serialisation
 
-See the `tests/` folder for more usage examples and edge cases.
+We can convert to dictionaries like this:
+```python
+var_data = vm.vars_to_dict(var_dct)
+print(var_data)
+# Output
+# {'temp': {'key': 'temp', 'name': 'Temperature', 'units': 'Celsius', 'desciption': 'Ambient temperature', 'components': None, 'component_axis': 0, 'data_type': 'object'}, 'force': {'key': 'force', 'name': 'Force', 'units': 'N', 'desciption': 'Force vector', 'components': ('x', 'y', 'z'), 'component_axis': 1, 'data_type': 'object'}}
+```
+
+Then we can convert back to Var instances like this:
+```python
+var_dct_recreated = vm.vars_from_dict(var_data)
+for k, v in var_dct_recreated:
+	print(f"k: match is {v == var_dct[k]}")
+# Output
+# temp: match is True
+# force: match is True
+```
+
+The data (`var_data`) can be easily saved and read from JSON using the 
+standard *json* library. 
+
+
+
 
 

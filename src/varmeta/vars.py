@@ -106,7 +106,7 @@ class Var:
         return [
             Var(
                 key=f"{self.key}_{comp}",
-                name=f"{self.name} {comp}",
+                name=f"{self.name} - {comp}",
                 units=self.units,
                 desciption=self.desciption,
                 components=None,
@@ -270,3 +270,28 @@ def records_to_df(
     df = pd.DataFrame.from_records(unpacked)
     df.columns = columns
     return df
+
+
+def vars_to_dict(var_dict: dict[str, Var]) -> dict[str, VarData]:
+    """Convert a dict of Vars to a dict of their dictionary representations.
+
+    Args:
+        var_dict: Dictionary mapping var keys to Var objects.
+
+    Returns:
+        dict[str, VarData]: Dictionary mapping keys to the VarData
+        representations of the Var instances.
+    """
+    return {key: var.to_dict() for key, var in var_dict.items()}
+
+
+def vars_from_dict(var_data_dict: dict[str, VarData]) -> dict[str, Var]:
+    """Convert a dict of VarData to a dict of Var objects.
+
+    Args:
+        var_data_dict: Dictionary mapping var keys to VarData representations.
+
+    Returns:
+        dict[str, Var]: Dictionary mapping var keys to Var objects.
+    """
+    return {key: Var(**data) for key, data in var_data_dict.items()}

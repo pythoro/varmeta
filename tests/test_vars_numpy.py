@@ -20,11 +20,11 @@ class TestVar:
         print(subvars, subvals)
         assert len(subvals) == 3
         assert_array_equal(subvals[0], np.array([10, 11]))
-        assert subvars[0].name == "force x"
+        assert subvars[0].name == "force - x"
         assert_array_equal(subvals[1], np.array([20, 21]))
-        assert subvars[1].name == "force y"
+        assert subvars[1].name == "force - y"
         assert_array_equal(subvals[2], np.array([30, 31]))
-        assert subvars[2].name == "force z"
+        assert subvars[2].name == "force - z"
 
     def test_numpy_unpack_axis_1(self):
         force = Var(
@@ -40,6 +40,6 @@ class TestVar:
         print(subvars, subvals)
         assert len(subvals) == 2
         assert_array_equal(subvals[0], np.array([10, 20, 30]))
-        assert subvars[0].name == "force x"
+        assert subvars[0].name == "force - x"
         assert_array_equal(subvals[1], np.array([11, 21, 31]))
-        assert subvars[1].name == "force y"
+        assert subvars[1].name == "force - y"

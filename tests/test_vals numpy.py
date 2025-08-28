@@ -21,8 +21,8 @@ class TestVal:
         unpacked_vals = val1.unpack()
         assert len(unpacked_vals) == 3
         assert_array_equal(unpacked_vals[0].data, np.array([10, 11]))
-        assert unpacked_vals[0].var.name == "force x"
+        assert unpacked_vals[0].var.name == "force - x"
         assert_array_equal(unpacked_vals[1].data, np.array([20, 21]))
-        assert unpacked_vals[1].var.name == "force y"
+        assert unpacked_vals[1].var.name == "force - y"
         assert_array_equal(unpacked_vals[2].data, np.array([30, 31]))
-        assert unpacked_vals[2].var.name == "force z"
+        assert unpacked_vals[2].var.name == "force - z"

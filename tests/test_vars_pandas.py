@@ -155,7 +155,7 @@ class Test_Pandas_Integration:
         print(df)
         csv_output = df.to_csv(index=False, lineterminator="\n")
         print(csv_output)
-        expected_csv = "insol_morning,insol_afternoon,m\nsolar radiation morning,solar radiation afternoon,mass\nW/m^2,W/m^2,kg\n200,250,3\n300,350,4\n"  # NoQA: E501
+        expected_csv = "insol_morning,insol_afternoon,m\nsolar radiation - morning,solar radiation - afternoon,mass\nW/m^2,W/m^2,kg\n200,250,3\n300,350,4\n"  # NoQA: E501
         assert csv_output == expected_csv
 
     def test_records_to_df_with_unpack(self):
@@ -183,5 +183,5 @@ class Test_Pandas_Integration:
         print(df)
         csv_output = df.to_csv(index=False, lineterminator="\n")
         print(csv_output)
-        expected_csv = "insol_morning,insol_afternoon,m\nsolar radiation morning,solar radiation afternoon,mass\nW/m^2,W/m^2,kg\n200,250,3\n300,350,4\n"  # NoQA: E501
+        expected_csv = "insol_morning,insol_afternoon,m\nsolar radiation - morning,solar radiation - afternoon,mass\nW/m^2,W/m^2,kg\n200,250,3\n300,350,4\n"  # NoQA: E501
         assert csv_output == expected_csv

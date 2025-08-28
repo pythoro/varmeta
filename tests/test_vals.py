@@ -50,11 +50,11 @@ class TestVal:
         print(subvals)
         assert len(subvals) == 3
         assert subvals[0].data == 10
-        assert subvals[0].var.name == "force x"
+        assert subvals[0].var.name == "force - x"
         assert subvals[1].data == 20
-        assert subvals[1].var.name == "force y"
+        assert subvals[1].var.name == "force - y"
         assert subvals[2].data == 30
-        assert subvals[2].var.name == "force z"
+        assert subvals[2].var.name == "force - z"
 
     def test_with_typed_var(self) -> None:
         """Test Val with typed Var."""

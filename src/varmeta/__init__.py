@@ -12,6 +12,8 @@ from .vars import (
     dict_to_df,
     records_to_df,
     unpack,
+    vars_from_dict,
+    vars_to_dict,
     vars_to_multi_index_data,
 )
 
@@ -26,4 +28,6 @@ __all__ = [
     "VarData",
     "records_to_df",
     "unpack",
+    "vars_to_dict",
+    "vars_from_dict",
 ]
