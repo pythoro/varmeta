@@ -5,7 +5,6 @@ component support, enabling robust metadata handling, serialization, and
 integration with pandas and other tools.
 """
 
-from .vals import Val, ValList
 from .vars import (
     Var,
     VarData,
@@ -21,8 +20,6 @@ __version__ = "0.0.1"
 
 __all__ = [
     "Var",
-    "Val",
-    "ValList",
     "vars_to_multi_index_data",
     "dict_to_df",
     "VarData",
