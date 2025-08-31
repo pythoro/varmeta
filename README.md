@@ -55,10 +55,10 @@ data_dct = {
 	FORCE: [10.0, 20.0, 30.0]
 }
 
-var_dct = {
+var_dct = vm.VarDict({
 	TEMP: temperature,
 	FORCE: force
-}
+})
 ```
 
 ### 3. Unpack data with components

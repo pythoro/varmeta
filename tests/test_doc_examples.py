@@ -37,7 +37,7 @@ class TestDocExamples:
     def test_var_creation(self, temperature, force):
         data_dct = {TEMP: 25.0, FORCE: [10.0, 20.0, 30.0]}
 
-        var_dct = {TEMP: temperature, FORCE: force}
+        var_dct = vm.VarDict({TEMP: temperature, FORCE: force})
         print(var_dct)
         print(data_dct)
 
@@ -45,7 +45,7 @@ class TestDocExamples:
         # Vector variable (e.g., 3D force)
         data_dct = {TEMP: 25.0, FORCE: [10.0, 20.0, 30.0]}
 
-        var_dct = {TEMP: temperature, FORCE: force}
+        var_dct = vm.VarDict({TEMP: temperature, FORCE: force})
         vars, vals = vm.unpack(var_dct, data_dct)
         print(vars)
         # Output:
@@ -57,7 +57,7 @@ class TestDocExamples:
         # Vector variable (e.g., 3D force)
         data_dct = {TEMP: 25.0, FORCE: [10.0, 20.0, 30.0]}
 
-        var_dct = {TEMP: temperature, FORCE: force}
+        var_dct = vm.VarDict({TEMP: temperature, FORCE: force})
         data_dct = {FORCE: [[200, 250, -30], [300, 350, -100]], TEMP: [30, 40]}
         df = vm.dict_to_df(var_dct, data_dct)
         print(df)
@@ -67,7 +67,7 @@ class TestDocExamples:
 
     def test_records_to_df(self, temperature, force):
         # Vector variable (e.g., 3D force)
-        var_dct = {TEMP: temperature, FORCE: force}
+        var_dct = vm.VarDict({TEMP: temperature, FORCE: force})
         data_dict_lst = [
             {FORCE: [200, 250, -30], TEMP: 30},
             {FORCE: [300, 350, -100], TEMP: 40},
@@ -76,7 +76,7 @@ class TestDocExamples:
         print(df)
 
     def test_serialisation(self, temperature, force):
-        var_dct = {TEMP: temperature, FORCE: force}
+        var_dct = vm.VarDict({TEMP: temperature, FORCE: force})
         var_data = vm.vars_to_dict(var_dct)
         print(var_data)
         # Output:

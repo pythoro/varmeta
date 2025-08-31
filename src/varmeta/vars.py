@@ -168,9 +168,15 @@ class Var:
         return tuples
 
 
+class VarDict(dict[str, Var]):
+    """A dictionary of Var objects with additional utility methods."""
+
+    pass
+
+
 def unpack(
-    var_dct: dict[str, Var], data_dct: dict[str, Any]
-) -> tuple[dict[str, Var], dict[str, Any]]:
+    var_dct: VarDict, data_dct: dict[str, Any]
+) -> tuple[VarDict, dict[str, Any]]:
     """Get var components for all the vars.
 
     Returns:
@@ -178,7 +184,7 @@ def unpack(
             - Mapping from var key to Var object (including components).
             - Mapping from var key to unpacked data values.
     """
-    vars = {}
+    vars = VarDict()
     vals = {}
     for key, data in data_dct.items():
         var = var_dct[key]
@@ -217,7 +223,7 @@ def vars_to_multi_index_data(
 
 
 def dict_to_df(
-    var_dct: dict[str, Var],
+    var_dct: VarDict,
     data_dct: dict[str, Any],
     attrs: list[str] | None = None,
 ) -> pd.DataFrame:
@@ -241,7 +247,7 @@ def dict_to_df(
 
 
 def records_to_df(
-    var_dct: dict[str, Var],
+    var_dct: VarDict,
     data_dict_lst: list[dict[str, Any]],
     attrs: list[str] | None = None,
 ) -> pd.DataFrame:
@@ -272,7 +278,7 @@ def records_to_df(
     return df
 
 
-def vars_to_dict(var_dict: dict[str, Var]) -> dict[str, VarData]:
+def vars_to_dict(var_dict: VarDict) -> dict[str, VarData]:
     """Convert a dict of Vars to a dict of their dictionary representations.
 
     Args:
@@ -294,4 +300,5 @@ def vars_from_dict(var_data_dict: dict[str, VarData]) -> dict[str, Var]:
     Returns:
         dict[str, Var]: Dictionary mapping var keys to Var objects.
     """
-    return {key: Var(**data) for key, data in var_data_dict.items()}
+    var_dct = {key: Var(**data) for key, data in var_data_dict.items()}
+    return VarDict(var_dct)

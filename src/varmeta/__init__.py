@@ -8,6 +8,7 @@ integration with pandas and other tools.
 from .vars import (
     Var,
     VarData,
+    VarDict,
     dict_to_df,
     records_to_df,
     unpack,
@@ -23,6 +24,7 @@ __all__ = [
     "vars_to_multi_index_data",
     "dict_to_df",
     "VarData",
+    "VarDict",
     "records_to_df",
     "unpack",
     "vars_to_dict",
