@@ -16,7 +16,7 @@ def temperature():
         key=TEMP,
         name="Temperature",
         units="Celsius",
-        desciption="Ambient temperature",
+        description="Ambient temperature",
         components=None,
     )
 
@@ -27,7 +27,7 @@ def force():
         key=FORCE,
         name="Force",
         units="N",
-        desciption="Force vector",
+        description="Force vector",
         components=("x", "y", "z"),
         component_axis=1,
     )
@@ -81,8 +81,8 @@ class TestDocExamples:
         print(var_data)
         # Output:
         # {
-        #   'temp': {'key': 'temp', 'name': 'Temperature', 'units': 'Celsius', 'desciption': 'Ambient temperature', 'components': None, 'component_axis': 0}, # NoQA: E501
-        #   'force': {'key': 'force', 'name': 'Force', 'units': 'N', 'desciption': 'Force vector', 'components': ('x', 'y', 'z'), 'component_axis': 1}  # NoQA: E501
+        #   'temp': {'key': 'temp', 'name': 'Temperature', 'units': 'Celsius', 'description': 'Ambient temperature', 'components': None, 'component_axis': 0}, # NoQA: E501
+        #   'force': {'key': 'force', 'name': 'Force', 'units': 'N', 'description': 'Force vector', 'components': ('x', 'y', 'z'), 'component_axis': 1}  # NoQA: E501
         # }
         var_dct_recreated = vm.vars_from_dict(var_data)
         for k, v in var_dct_recreated.items():

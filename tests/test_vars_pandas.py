@@ -13,7 +13,7 @@ class Test_Pandas_Integration:
             key="windspeed",
             name="wind_speed",
             units="m/s",
-            desciption="Wind speed at 10m",
+            description="Wind speed at 10m",
             components=None,
         )
         df = pd.DataFrame({var: [5.0, 10.0]})
@@ -26,7 +26,7 @@ class Test_Pandas_Integration:
             key="windspeed",
             name="wind_speed",
             units="m/s",
-            desciption="Wind speed at 10m",
+            description="Wind speed at 10m",
             components=None,
         )
         df = pd.DataFrame({"data": [5.0, 10.0]}, index=[var, var])
@@ -40,14 +40,14 @@ class Test_Pandas_Integration:
             key="insol",
             name="solar_radiation",
             units="W/m^2",
-            desciption="Solar radiation at surface",
+            description="Solar radiation at surface",
             components=None,
         )
         var2 = Var(
             key="m",
             name="mass",
             units="kg",
-            desciption="Mass of the object",
+            description="Mass of the object",
             components=None,
         )
         df = pd.DataFrame({var: [200, 300], var2: [3, 4]})
@@ -62,14 +62,14 @@ class Test_Pandas_Integration:
             key="insol",
             name="solar_radiation",
             units="W/m^2",
-            desciption="Solar radiation at surface",
+            description="Solar radiation at surface",
             components=None,
         )
         var2 = Var(
             key="m",
             name="mass",
             units="kg",
-            desciption="Mass of the object",
+            description="Mass of the object",
             components=None,
         )
         df = pd.DataFrame({var: [200, 300], var2: [3, 4]})
@@ -84,14 +84,14 @@ class Test_Pandas_Integration:
             key="insol",
             name="solar radiation",
             units="W/m^2",
-            desciption="Solar radiation at surface",
+            description="Solar radiation at surface",
             components=None,
         )
         var2 = Var(
             key="m",
             name="mass",
             units="kg",
-            desciption="Mass of the object",
+            description="Mass of the object",
             components=None,
         )
         vars = [var, var2]
@@ -112,14 +112,14 @@ class Test_Pandas_Integration:
             key="insol",
             name="solar radiation",
             units="W/m^2",
-            desciption="Solar radiation at surface",
+            description="Solar radiation at surface",
             components=None,
         )
         var2 = Var(
             key="m",
             name="mass",
             units="kg",
-            desciption="Mass of the object",
+            description="Mass of the object",
             components=None,
         )
         var_dct = {"insol": var, "m": var2}
@@ -138,7 +138,7 @@ class Test_Pandas_Integration:
             key="insol",
             name="solar radiation",
             units="W/m^2",
-            desciption="Solar radiation at surface",
+            description="Solar radiation at surface",
             components=("morning", "afternoon"),
             component_axis=1,
         )
@@ -146,7 +146,7 @@ class Test_Pandas_Integration:
             key="m",
             name="mass",
             units="kg",
-            desciption="Mass of the object",
+            description="Mass of the object",
             components=None,
         )
         var_dct = {"insol": var, "m": var2}
@@ -163,7 +163,7 @@ class Test_Pandas_Integration:
             key="insol",
             name="solar radiation",
             units="W/m^2",
-            desciption="Solar radiation at surface",
+            description="Solar radiation at surface",
             components=("morning", "afternoon"),
             component_axis=1,
         )
@@ -171,7 +171,7 @@ class Test_Pandas_Integration:
             key="m",
             name="mass",
             units="kg",
-            desciption="Mass of the object",
+            description="Mass of the object",
             components=None,
         )
         var_dct = {"insol": var, "m": var2}

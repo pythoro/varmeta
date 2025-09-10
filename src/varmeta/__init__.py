@@ -5,8 +5,6 @@ component support, enabling robust metadata handling, serialization, and
 integration with pandas and other tools.
 """
 
-__version__ = "0.1.0"
-
 from .vars import (
     Var,
     VarData,

@@ -9,12 +9,12 @@ class TestVar:
             key="temp",
             name="temperature",
             units="Celsius",
-            desciption="Ambient temperature",
+            description="Ambient temperature",
             components=None,
         )
         assert var.name == "temperature"
         assert var.units == "Celsius"
-        assert var.desciption == "Ambient temperature"
+        assert var.description == "Ambient temperature"
         assert var.components is None
 
     def test_var_str(self):
@@ -22,7 +22,7 @@ class TestVar:
             key="pressure",
             name="pressure",
             units="Pascal",
-            desciption="Atmospheric pressure",
+            description="Atmospheric pressure",
             components=None,
         )
         assert str(var) == "pressure [Pascal]"
@@ -32,14 +32,14 @@ class TestVar:
             key="temp",
             name="temperature",
             units="Celsius",
-            desciption="Ambient temperature",
+            description="Ambient temperature",
             components=None,
         )
         var2 = Var(
             key="pressure",
             name="pressure",
             units="Pascal",
-            desciption="Atmospheric pressure",
+            description="Atmospheric pressure",
             components=None,
         )
         assert var1 > var2  # Based on name ordering
@@ -49,14 +49,14 @@ class TestVar:
             key="hum",
             name="humidity",
             units="Percent",
-            desciption="Relative humidity",
+            description="Relative humidity",
             components=None,
         )
         var2 = Var(
             key="humidity",
             name="humidity",
             units="Percent",
-            desciption="Relative humidity",
+            description="Relative humidity",
             components=None,
         )
         assert var1 == var2
@@ -66,14 +66,14 @@ class TestVar:
             key="humidity",
             name="humidity",
             units="Percent",
-            desciption="Relative humidity",
+            description="Relative humidity",
             components=None,
         )
         var2 = Var(
             key="temp",
             name="temperature",
             units="Celsius",
-            desciption="Ambient temperature",
+            description="Ambient temperature",
             components=None,
         )
         assert var1 != var2
@@ -83,7 +83,7 @@ class TestVar:
             key="vel",
             name="velocity",
             units="m/s",
-            desciption="Speed of an object",
+            description="Speed of an object",
             components=("x", "y", "z"),
         )
         assert hash(var) != 0
@@ -93,7 +93,7 @@ class TestVar:
             key="F",
             name="force",
             units="N",
-            desciption="A force",
+            description="A force",
             components=("x", "y", "z"),
         )
         data = [[10, 11], [20, 21], [30, 31]]
@@ -112,7 +112,7 @@ class TestVar:
             key="F",
             name="force",
             units="N",
-            desciption="A force",
+            description="A force",
             components=("x", "y"),
             component_axis=1,
         )
@@ -130,7 +130,7 @@ class TestVar:
             key="F",
             name="force",
             units="N",
-            desciption="A force",
+            description="A force",
             components=("x", "y", "z"),
         )
         dct = force.to_dict()

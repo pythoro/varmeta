@@ -16,7 +16,7 @@ class VarData(TypedDict):
     key: str
     name: str
     units: str
-    desciption: str
+    description: str
     components: tuple[str, ...] | None
     component_axis: int
     data_type: NotRequired[str | None]
@@ -30,7 +30,7 @@ class Var:
         key (str): Unique identifier for the variable.
         name (str): Human-readable name.
         units (str): Units of measurement.
-        desciption (str): Description of the variable.
+        description (str): Description of the variable.
         components (tuple[str, ...] | None): Tuple of component names, or None.
         component_axis (int): Axis along which to unpack components.
     """
@@ -38,7 +38,7 @@ class Var:
     key: str = field(compare=False)
     name: str
     units: str
-    desciption: str
+    description: str
     components: tuple[str, ...] | None
     component_axis: int = 0
     data_type: str | None = "object"
@@ -71,7 +71,7 @@ class Var:
             "key": self.key,
             "name": self.name,
             "units": self.units,
-            "desciption": self.desciption,
+            "description": self.description,
             "components": self.components,
             "component_axis": self.component_axis,
             "data_type": self.data_type,
@@ -108,7 +108,7 @@ class Var:
                 key=f"{self.key}_{comp}",
                 name=f"{self.name} - {comp}",
                 units=self.units,
-                desciption=self.desciption,
+                description=self.description,
                 components=None,
                 data_type=self.data_type,
             )

@@ -29,7 +29,7 @@ temperature = vm.Var(
 	key=TEMP,
 	name="Temperature",
 	units="Celsius",
-	desciption="Ambient temperature",
+	description="Ambient temperature",
 	components=None
 )
 
@@ -38,7 +38,7 @@ force = vm.Var(
 	key=FORCE,
 	name="Force",
 	units="N",
-	desciption="Force vector",
+	description="Force vector",
 	components=("x", "y", "z"),
 	component_axis=1
 )
@@ -121,7 +121,7 @@ We can convert to dictionaries like this:
 var_data = vm.vars_to_dict(var_dct)
 print(var_data)
 # Output
-# {'temp': {'key': 'temp', 'name': 'Temperature', 'units': 'Celsius', 'desciption': 'Ambient temperature', 'components': None, 'component_axis': 0, 'data_type': 'object'}, 'force': {'key': 'force', 'name': 'Force', 'units': 'N', 'desciption': 'Force vector', 'components': ('x', 'y', 'z'), 'component_axis': 1, 'data_type': 'object'}}
+# {'temp': {'key': 'temp', 'name': 'Temperature', 'units': 'Celsius', 'description': 'Ambient temperature', 'components': None, 'component_axis': 0, 'data_type': 'object'}, 'force': {'key': 'force', 'name': 'Force', 'units': 'N', 'description': 'Force vector', 'components': ('x', 'y', 'z'), 'component_axis': 1, 'data_type': 'object'}}
 ```
 
 Then we can convert back to Var instances like this:

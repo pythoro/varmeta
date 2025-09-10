@@ -12,7 +12,7 @@ class TestVar:
             key="F",
             name="force",
             units="N",
-            desciption="A force",
+            description="A force",
             components=("x", "y", "z"),
         )
         data = np.array([[10, 11], [20, 21], [30, 31]])
@@ -31,7 +31,7 @@ class TestVar:
             key="F",
             name="force",
             units="N",
-            desciption="A force",
+            description="A force",
             components=("x", "y"),
             component_axis=1,
         )
