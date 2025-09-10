@@ -2,7 +2,13 @@
 
 import pandas as pd
 
-from varmeta import Var, dict_to_df, records_to_df, vars_to_multi_index_data
+from varmeta import (
+    Var,
+    VarDict,
+    dict_to_df,
+    records_to_df,
+    vars_to_multi_index_data,
+)
 
 
 class Test_Pandas_Integration:
@@ -122,7 +128,7 @@ class Test_Pandas_Integration:
             description="Mass of the object",
             components=None,
         )
-        var_dct = {"insol": var, "m": var2}
+        var_dct = VarDict({"insol": var, "m": var2})
         data_dct = {"insol": [200, 300], "m": [3, 4]}
         df = dict_to_df(var_dct, data_dct)
         print(df)
@@ -149,7 +155,7 @@ class Test_Pandas_Integration:
             description="Mass of the object",
             components=None,
         )
-        var_dct = {"insol": var, "m": var2}
+        var_dct = VarDict({"insol": var, "m": var2})
         data_dct = {"insol": [[200, 250], [300, 350]], "m": [3, 4]}
         df = dict_to_df(var_dct, data_dct)
         print(df)
@@ -174,7 +180,7 @@ class Test_Pandas_Integration:
             description="Mass of the object",
             components=None,
         )
-        var_dct = {"insol": var, "m": var2}
+        var_dct = VarDict({"insol": var, "m": var2})
         data_dict_lst = [
             {"insol": [200, 250], "m": 3},
             {"insol": [300, 350], "m": 4},
