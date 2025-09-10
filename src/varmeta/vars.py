@@ -17,8 +17,8 @@ class VarData(TypedDict):
     name: str
     units: str
     description: str
-    components: tuple[str, ...] | None
-    component_axis: int
+    components: NotRequired[tuple[str, ...] | None]
+    component_axis: NotRequired[int]
     data_type: NotRequired[str | None]
 
 
@@ -39,7 +39,7 @@ class Var:
     name: str
     units: str
     description: str
-    components: tuple[str, ...] | None
+    components: tuple[str, ...] | None = None
     component_axis: int = 0
     data_type: str | None = "object"
 

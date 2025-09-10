@@ -17,6 +17,18 @@ class TestVar:
         assert var.description == "Ambient temperature"
         assert var.components is None
 
+    def test_var_creation_no_components(self):
+        var = Var(
+            key="temp",
+            name="temperature",
+            units="Celsius",
+            description="Ambient temperature",
+        )
+        assert var.name == "temperature"
+        assert var.units == "Celsius"
+        assert var.description == "Ambient temperature"
+        assert var.components is None
+
     def test_var_str(self):
         var = Var(
             key="pressure",
