@@ -1,6 +1,6 @@
 [project]
 name = "varmeta"
-version = "0.1.2"
+version = "0.1.3"
 description = "Lightweight variable metadata management."
 readme = "README.md"
 authors = [
