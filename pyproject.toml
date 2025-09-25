@@ -6,7 +6,7 @@ readme = "README.md"
 authors = [
     { name = "Reuben Rusk", email = "pythoro@mindquip.com" }
 ]
-requires-python = ">=3.13"
+requires-python = ">=3.11"
 dependencies = [
     "numpy>=1.11.0",
     "pandas>=2.3.1",
