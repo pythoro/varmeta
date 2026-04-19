@@ -31,7 +31,8 @@ class Var:
         units (str): Units of measurement.
         description (str): Description of the variable.
         components (tuple[str, ...] | None): Tuple of component names, or None.
-        component_axis (int): Axis along which to unpack components.
+        component_axis (int): Axis along which to unpack components. By
+            default, 1 (columns for 2D data).
     """
 
     key: str = field(compare=False)
@@ -159,7 +160,7 @@ class Var:
             return []
         return [
             Var(
-                key=f"{self.key}_{comp}",
+                key=f"{self.key}__{comp}",
                 name=f"{self.name} - {comp}",
                 units=self.units,
                 description=self.description,
