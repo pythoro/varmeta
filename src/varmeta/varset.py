@@ -186,12 +186,14 @@ class VarSet:
         return self._vars.items()
 
     def unpack(
-        self, data: dict[str, Any],
+        self, data: dict[str, Any], raise_extra: bool = False,
     ) -> tuple[VarSet, dict[str, Any]]:
         """Expand component variables in the data.
 
         Args:
             data: Dictionary mapping var keys to data values.
+            raise_extra: If True, raise KeyError for extra keys in data.
+                If False, silently ignore extra keys. Defaults to False.
 
         Returns:
             tuple[VarSet, dict[str, Any]]: A new VarSet with
@@ -212,19 +214,24 @@ class VarSet:
         missing = var_keys - data_keys
         extra = data_keys - var_keys
         
-        if missing or extra:
+        # Check for errors
+        if missing or (extra and raise_extra):
             msg_parts = []
             if missing:
                 msg_parts.append(
                     f"Missing keys in data: {sorted(missing)}"
                 )
-            if extra:
+            if extra and raise_extra:
                 msg_parts.append(
                     f"Extra keys in data: {sorted(extra)}"
                 )
             msg = ". ".join(msg_parts)
             msg += f". Expected keys: {sorted(var_keys)}."
             raise KeyError(msg)
+        
+        # Filter out extra keys before unpacking (if we didn't raise above)
+        if extra and not raise_extra:
+            data = {k: v for k, v in data.items() if k in var_keys}
         
         new_vars, new_data = _unpack(self._vars, data)
         return VarSet(new_vars), new_data
