@@ -237,7 +237,7 @@ class VarSet:
         return VarSet(new_vars), new_data
 
     def pack(
-        self, data: dict[str, Any],
+        self, data: dict[str, Any], raise_missing: bool = False,
     ) -> dict[str, Any]:
         """Reconstruct original structure from unpacked data.
 
@@ -247,13 +247,18 @@ class VarSet:
 
         Args:
             data: Dictionary with unpacked component keys.
+            raise_missing: If True, raise KeyError for variables in VarSet
+                that are missing from data. If False, silently skip missing
+                variables. Defaults to False.
 
         Returns:
             dict[str, Any]: Dictionary with original structure restored.
 
         Raises:
             TypeError: If data is not a dict.
-            KeyError: If required component keys are missing.
+            KeyError: If required component keys are missing (when the
+                variable is present), or if raise_missing=True and
+                variables are missing from data.
 
         Examples:
             >>> # After unpacking
@@ -280,11 +285,26 @@ class VarSet:
                     f"{key}__{comp}" for comp in var.components
                 ]
                 missing = [k for k in comp_keys if k not in data]
+                
+                # Check if any component keys are present
+                any_present = any(k in data for k in comp_keys)
+                
                 if missing:
-                    raise KeyError(
-                        f"Missing component keys for '{key}': "
-                        f"{missing}. Expected keys: {comp_keys}."
-                    )
+                    if any_present:
+                        # Some but not all components present - always an error
+                        raise KeyError(
+                            f"Missing component keys for '{key}': "
+                            f"{missing}. Expected keys: {comp_keys}."
+                        )
+                    elif raise_missing:
+                        # No components present and raise_missing=True
+                        raise KeyError(
+                            f"Missing variable '{key}' in data. "
+                            f"Expected component keys: {comp_keys}."
+                        )
+                    else:
+                        # No components present and raise_missing=False - skip
+                        continue
 
                 comp_data = [data[k] for k in comp_keys]
                 processed_keys.update(comp_keys)
@@ -316,10 +336,14 @@ class VarSet:
             else:
                 # Non-component variable
                 if key not in data:
-                    raise KeyError(
-                        f"Missing key '{key}' in data. "
-                        f"Expected all original VarSet keys."
-                    )
+                    if raise_missing:
+                        raise KeyError(
+                            f"Missing key '{key}' in data. "
+                            f"Expected all original VarSet keys."
+                        )
+                    else:
+                        # Skip missing variable
+                        continue
                 result[key] = data[key]
                 processed_keys.add(key)
 
