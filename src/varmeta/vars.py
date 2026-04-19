@@ -78,12 +78,15 @@ class Var:
         Returns:
             Var: A Var instance created from the input dictionary.
         """
+        c = dct.get("components")
+        if isinstance(c, list):
+            c = tuple(c)
         return cls(
             key=dct["key"],
             name=dct["name"],
             units=dct["units"],
             description=dct["description"],
-            components=dct.get("components"),
+            components=c,
             component_axis=dct.get("component_axis", 0),
             data_type=dct.get("data_type", "object"),
         )
