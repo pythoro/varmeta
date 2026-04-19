@@ -236,6 +236,69 @@ class VarSet:
         new_vars, new_data = _unpack(self._vars, data)
         return VarSet(new_vars), new_data
 
+    def _pack_component_var(
+        self,
+        key: str,
+        var: Var,
+        data: dict[str, Any],
+        raise_missing: bool,
+    ) -> tuple[Any | None, set[str]]:
+        """Pack a component variable from unpacked data.
+
+        Args:
+            key: Variable key.
+            var: Variable with components.
+            data: Unpacked data dict.
+            raise_missing: Whether to raise on missing data.
+
+        Returns:
+            tuple: (packed_value or None, set of processed keys)
+
+        Raises:
+            KeyError: If components are partially or fully missing
+                per raise_missing flag.
+        """
+        comp_keys = [f"{key}__{comp}" for comp in var.components]
+        missing = [k for k in comp_keys if k not in data]
+        any_present = any(k in data for k in comp_keys)
+
+        if missing:
+            if any_present:
+                # Partial - always an error
+                raise KeyError(
+                    f"Missing component keys for '{key}': "
+                    f"{missing}. Expected keys: {comp_keys}."
+                )
+            if raise_missing:
+                # Fully missing with raise_missing=True
+                raise KeyError(
+                    f"Missing variable '{key}' in data. "
+                    f"Expected component keys: {comp_keys}."
+                )
+            # Fully missing with raise_missing=False - skip
+            return None, set()
+
+        # All components present - pack them
+        comp_data = [data[k] for k in comp_keys]
+        all_scalar = all(
+            isinstance(v, int | float | np.number) for v in comp_data
+        )
+        all_array = all(
+            isinstance(v, list | np.ndarray) for v in comp_data
+        )
+
+        if all_scalar:
+            packed_value = comp_data
+        elif all_array:
+            arr = np.array(comp_data)
+            if var.component_axis != 0:
+                arr = np.moveaxis(arr, 0, var.component_axis)
+            packed_value = arr.tolist()
+        else:
+            packed_value = comp_data
+
+        return packed_value, set(comp_keys)
+
     def pack(
         self, data: dict[str, Any], raise_missing: bool = False,
     ) -> dict[str, Any]:
@@ -280,59 +343,12 @@ class VarSet:
 
         for key, var in self._vars.items():
             if var.components:
-                # Collect component data
-                comp_keys = [
-                    f"{key}__{comp}" for comp in var.components
-                ]
-                missing = [k for k in comp_keys if k not in data]
-                
-                # Check if any component keys are present
-                any_present = any(k in data for k in comp_keys)
-                
-                if missing:
-                    if any_present:
-                        # Some but not all components present - always an error
-                        raise KeyError(
-                            f"Missing component keys for '{key}': "
-                            f"{missing}. Expected keys: {comp_keys}."
-                        )
-                    elif raise_missing:
-                        # No components present and raise_missing=True
-                        raise KeyError(
-                            f"Missing variable '{key}' in data. "
-                            f"Expected component keys: {comp_keys}."
-                        )
-                    else:
-                        # No components present and raise_missing=False - skip
-                        continue
-
-                comp_data = [data[k] for k in comp_keys]
-                processed_keys.update(comp_keys)
-
-                # Check if all components are scalars or all are arrays
-                all_scalar = all(
-                    isinstance(v, int | float | np.number)
-                    for v in comp_data
+                packed_value, keys = self._pack_component_var(
+                    key, var, data, raise_missing
                 )
-                all_array = all(
-                    isinstance(v, list | np.ndarray)
-                    for v in comp_data
-                )
-
-                if all_scalar:
-                    # Simple case: reconstruct as list
-                    result[key] = comp_data
-                elif all_array:
-                    # Stack arrays and moveaxis back to component_axis
-                    arr = np.array(comp_data)
-                    if var.component_axis != 0:
-                        arr = np.moveaxis(
-                            arr, 0, var.component_axis,
-                        )
-                    result[key] = arr.tolist()
-                else:
-                    # Mixed types - just return as list
-                    result[key] = comp_data
+                if packed_value is not None:
+                    result[key] = packed_value
+                    processed_keys.update(keys)
             else:
                 # Non-component variable
                 if key not in data:
@@ -341,9 +357,7 @@ class VarSet:
                             f"Missing key '{key}' in data. "
                             f"Expected all original VarSet keys."
                         )
-                    else:
-                        # Skip missing variable
-                        continue
+                    continue
                 result[key] = data[key]
                 processed_keys.add(key)
 
