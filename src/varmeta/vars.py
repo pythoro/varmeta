@@ -61,13 +61,41 @@ class Var:
         desc = f"{self.name} [{self.units}]"
         return desc
 
+    def __hash__(self) -> int:
+        """Return a hash of the variable based on its key.
+
+        Returns:
+            int: Hash of the variable.
+        """
+        return hash(self.key)
+
+    @classmethod
+    def from_dict(cls, dct: VarData) -> Var:
+        """Create a Var from a dictionary.
+
+        Args:
+            dct (VarData): A dictionary containing the Var data.
+
+        Returns:
+            Var: A Var instance created from the input dictionary.
+        """
+        return cls(
+            key=dct["key"],
+            name=dct["name"],
+            units=dct["units"],
+            description=dct["description"],
+            components=dct.get("components"),
+            component_axis=dct.get("component_axis", 0),
+            data_type=dct.get("data_type", "object"),
+        )
+
     def to_dict(self) -> VarData:
         """Convert the Var to a dictionary.
 
         Returns:
             VarData: Dictionary representation of the Var.
         """
-        return {
+        return VarData({
             "key": self.key,
             "name": self.name,
             "units": self.units,
@@ -75,7 +103,7 @@ class Var:
             "components": self.components,
             "component_axis": self.component_axis,
             "data_type": self.data_type,
-        }
+        })
 
     def validate(self, data: object, raise_type_error: bool = True) -> bool:
         """Validate that the data matches the Var's data_type.
@@ -264,7 +292,6 @@ def records_to_df(
     var_list = None
     unpacked = []
     for data_dct in data_dict_lst:
-        print(data_dct)
         unpacked_var_dct, subdata_dct = unpack(var_dct, data_dct)
         if var_list is None:
             var_list = [unpacked_var_dct[key] for key in subdata_dct]
@@ -300,5 +327,5 @@ def vars_from_dict(var_data_dict: dict[str, VarData]) -> dict[str, Var]:
     Returns:
         dict[str, Var]: Dictionary mapping var keys to Var objects.
     """
-    var_dct = {key: Var(**data) for key, data in var_data_dict.items()}
+    var_dct = {key: Var.from_dict(data) for key, data in var_data_dict.items()}
     return VarDict(var_dct)

@@ -120,7 +120,6 @@ We can convert to dictionaries like this:
 ```python
 var_data = vm.vars_to_dict(var_dct)
 print(var_data)
-# Output
 # {'temp': {'key': 'temp', 'name': 'Temperature', 'units': 'Celsius', 'description': 'Ambient temperature', 'components': None, 'component_axis': 0, 'data_type': 'object'}, 'force': {'key': 'force', 'name': 'Force', 'units': 'N', 'description': 'Force vector', 'components': ('x', 'y', 'z'), 'component_axis': 1, 'data_type': 'object'}}
 ```
 
@@ -128,10 +127,10 @@ Then we can convert back to Var instances like this:
 ```python
 var_dct_recreated = vm.vars_from_dict(var_data)
 for k, v in var_dct_recreated:
-	print(f"k: match is {v == var_dct[k]}")
+	print(f"{k}: {'matches!' if v == var_dct[k] else 'differs!'}")
 # Output
-# temp: match is True
-# force: match is True
+# temp: matches!
+# force: matches!
 ```
 
 The data (`var_data`) can be easily saved and read from JSON using the 

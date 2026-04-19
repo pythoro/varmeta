@@ -16,6 +16,7 @@ from .vars import (
     vars_to_dict,
     vars_to_multi_index_data,
 )
+from .valdicts import ValData, ValDict
 
 __all__ = [
     "Var",
@@ -27,4 +28,6 @@ __all__ = [
     "unpack",
     "vars_to_dict",
     "vars_from_dict",
+    "ValData",
+    "ValDict",
 ]
