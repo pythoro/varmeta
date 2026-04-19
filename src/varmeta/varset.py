@@ -197,6 +197,20 @@ class VarSet:
         columns = pd.MultiIndex.from_tuples(
             tuples, names=names,
         )
+        
+        # Check if all unpacked values are scalars
+        # (happens when components are unpacked from a single vector)
+        import numpy as np
+        all_scalars = all(
+            not isinstance(val, list | tuple | np.ndarray)
+            for val in unpacked_data.values()
+        )
+        if all_scalars:
+            # Wrap scalars in lists to create single-row DataFrame
+            unpacked_data = {
+                key: [val] for key, val in unpacked_data.items()
+            }
+        
         df = pd.DataFrame(unpacked_data)
         df.columns = columns
         return df
