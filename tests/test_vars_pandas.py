@@ -2,13 +2,8 @@
 
 import pandas as pd
 
-from varmeta import (
-    Var,
-    VarDict,
-    dict_to_df,
-    records_to_df,
-    vars_to_multi_index_data,
-)
+from varmeta import Var, VarSet
+from varmeta.vars import _vars_to_multi_index_data
 
 
 class Test_Pandas_Integration:
@@ -101,7 +96,7 @@ class Test_Pandas_Integration:
             components=None,
         )
         vars = [var, var2]
-        tuples, names = vars_to_multi_index_data(vars)
+        tuples, names = _vars_to_multi_index_data(vars)
         columns = pd.MultiIndex.from_tuples(tuples, names=names)
         df = pd.DataFrame({"insol": [200, 300], "m": [3, 4]})
         df.columns = columns
@@ -128,9 +123,9 @@ class Test_Pandas_Integration:
             description="Mass of the object",
             components=None,
         )
-        var_dct = VarDict({"insol": var, "m": var2})
+        varset = VarSet({"insol": var, "m": var2})
         data_dct = {"insol": [200, 300], "m": [3, 4]}
-        df = dict_to_df(var_dct, data_dct)
+        df = varset.to_dataframe(data_dct)
         print(df)
         csv_output = df.to_csv(index=False, lineterminator="\n")
         print(csv_output)
@@ -155,9 +150,9 @@ class Test_Pandas_Integration:
             description="Mass of the object",
             components=None,
         )
-        var_dct = VarDict({"insol": var, "m": var2})
+        varset = VarSet({"insol": var, "m": var2})
         data_dct = {"insol": [[200, 250], [300, 350]], "m": [3, 4]}
-        df = dict_to_df(var_dct, data_dct)
+        df = varset.to_dataframe(data_dct)
         print(df)
         csv_output = df.to_csv(index=False, lineterminator="\n")
         print(csv_output)
@@ -180,12 +175,12 @@ class Test_Pandas_Integration:
             description="Mass of the object",
             components=None,
         )
-        var_dct = VarDict({"insol": var, "m": var2})
+        varset = VarSet({"insol": var, "m": var2})
         data_dict_lst = [
             {"insol": [200, 250], "m": 3},
             {"insol": [300, 350], "m": 4},
         ]
-        df = records_to_df(var_dct, data_dict_lst)
+        df = varset.to_dataframe(data_dict_lst)
         print(df)
         csv_output = df.to_csv(index=False, lineterminator="\n")
         print(csv_output)

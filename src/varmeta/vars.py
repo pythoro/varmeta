@@ -6,7 +6,6 @@ from dataclasses import dataclass, field
 from typing import Any, NotRequired, TypedDict
 
 import numpy as np
-import pandas as pd
 from numpy.typing import NDArray
 
 
@@ -196,136 +195,53 @@ class Var:
         return tuples
 
 
-class VarDict(dict[str, Var]):
-    """A dictionary of Var objects with additional utility methods."""
+def _unpack(
+    var_dct: dict[str, Var], data_dct: dict[str, Any],
+) -> tuple[dict[str, Var], dict[str, Any]]:
+    """Expand component variables in var and data dicts.
 
-    pass
-
-
-def unpack(
-    var_dct: VarDict, data_dct: dict[str, Any]
-) -> tuple[VarDict, dict[str, Any]]:
-    """Get var components for all the vars.
+    Args:
+        var_dct: Dictionary mapping var keys to Var objects.
+        data_dct: Dictionary mapping var keys to data values.
 
     Returns:
-        tuple[dict[str, Var], dict[str, object]]: Tuple of two dicts:
-            - Mapping from var key to Var object (including components).
-            - Mapping from var key to unpacked data values.
+        tuple[dict[str, Var], dict[str, Any]]: Tuple of two
+            dicts with component variables expanded.
     """
-    vars = VarDict()
-    vals = {}
+    out_vars: dict[str, Var] = {}
+    out_vals: dict[str, Any] = {}
     for key, data in data_dct.items():
         var = var_dct[key]
         subvars = var.component_vars()
         if subvars:
             tuples = var.unpack_tuples(data)
             for subvar, subval in tuples:
-                vals[subvar.key] = subval
-                vars[subvar.key] = subvar
+                out_vals[subvar.key] = subval
+                out_vars[subvar.key] = subvar
         else:
-            vals[key] = data
-            vars[key] = var
-    return vars, vals
+            out_vals[key] = data
+            out_vars[key] = var
+    return out_vars, out_vals
 
 
-def vars_to_multi_index_data(
+def _vars_to_multi_index_data(
     lst: list[Var],
     attrs: list[str] | None = None,
-) -> tuple[list[tuple[str, str]], list[str]]:
-    """Convert a list of Vars to MultiIndex data.
+) -> tuple[list[tuple[str, ...]], list[str]]:
+    """Convert a list of Vars to MultiIndex tuples and names.
 
     Args:
         lst: List of Var objects.
-        attrs: List of Var attributes to use for MultiIndex levels.
+        attrs: Var attributes to use for MultiIndex levels.
 
     Returns:
-        tuple[list[str], list[str]]: Tuple of two lists:
-            - List of variable names.
-            - List of variable units.
+        tuple[list[tuple[str, ...]], list[str]]: Tuples for
+            MultiIndex and the attribute names.
     """
     tuples = []
     attrs = ["key", "name", "units"] if attrs is None else attrs
     for var in lst:
-        tuples.append(tuple([getattr(var, attr) for attr in attrs]))
+        tuples.append(
+            tuple(getattr(var, attr) for attr in attrs)
+        )
     return tuples, attrs
-
-
-def dict_to_df(
-    var_dct: VarDict,
-    data_dct: dict[str, Any],
-    attrs: list[str] | None = None,
-) -> pd.DataFrame:
-    """Convert a dict of Vars and data to a pandas DataFrame.
-
-    Args:
-        var_dct: Dictionary mapping var keys to Var objects.
-        data_dct: Dictionary mapping var keys to data values.
-        attrs: List of Var attributes to use for MultiIndex levels.
-
-    Returns:
-        pd.DataFrame: DataFrame with MultiIndex columns based on Var metadata.
-    """
-    var_dct, data_dct = unpack(var_dct, data_dct)
-    var_list = [var_dct[key] for key in data_dct]
-    tuples, names = vars_to_multi_index_data(var_list, attrs=attrs)
-    columns = pd.MultiIndex.from_tuples(tuples, names=names)
-    df = pd.DataFrame(data_dct)
-    df.columns = columns
-    return df
-
-
-def records_to_df(
-    var_dct: VarDict,
-    data_dict_lst: list[dict[str, Any]],
-    attrs: list[str] | None = None,
-) -> pd.DataFrame:
-    """Convert Vars and a list of records of data to a pandas DataFrame.
-
-    Args:
-        var_dct: Dictionary mapping var keys to Var objects.
-        data_dict_lst: List of dictionaries mapping var keys to data values.
-        attrs: List of Var attributes to use for MultiIndex levels.
-
-    Returns:
-        pd.DataFrame: DataFrame with MultiIndex columns based on Var metadata.
-    """
-    var_list = None
-    unpacked = []
-    for data_dct in data_dict_lst:
-        unpacked_var_dct, subdata_dct = unpack(var_dct, data_dct)
-        if var_list is None:
-            var_list = [unpacked_var_dct[key] for key in subdata_dct]
-        unpacked.append(subdata_dct)
-    if var_list is None:
-        raise ValueError("No data or malformed data provided.")
-    tuples, names = vars_to_multi_index_data(var_list, attrs=attrs)
-    columns = pd.MultiIndex.from_tuples(tuples, names=names)
-    df = pd.DataFrame.from_records(unpacked)
-    df.columns = columns
-    return df
-
-
-def vars_to_dict(var_dict: VarDict) -> dict[str, VarData]:
-    """Convert a dict of Vars to a dict of their dictionary representations.
-
-    Args:
-        var_dict: Dictionary mapping var keys to Var objects.
-
-    Returns:
-        dict[str, VarData]: Dictionary mapping keys to the VarData
-        representations of the Var instances.
-    """
-    return {key: var.to_dict() for key, var in var_dict.items()}
-
-
-def vars_from_dict(var_data_dict: dict[str, VarData]) -> dict[str, Var]:
-    """Convert a dict of VarData to a dict of Var objects.
-
-    Args:
-        var_data_dict: Dictionary mapping var keys to VarData representations.
-
-    Returns:
-        dict[str, Var]: Dictionary mapping var keys to Var objects.
-    """
-    var_dct = {key: Var.from_dict(data) for key, data in var_data_dict.items()}
-    return VarDict(var_dct)
