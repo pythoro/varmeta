@@ -14,7 +14,7 @@
 - Define variables with rich metadata once (`Var` instances)
 - Collect them into a `VarSet` container
 - Use shared literal string keys across `VarSet` and data dictionaries
-- Automatically unpack multi-component variables (e.g., 3D force → force_x, force_y, force_z)
+- Automatically unpack multi-component variables (e.g., 3D force → force__x, force__y, force__z)
 - Generate pandas DataFrames with MultiIndex headers containing keys, names, and units
 - Round-trip serialization to/from JSON-compatible dictionaries
 
@@ -103,7 +103,7 @@ All symbols exported from `src/varmeta/__init__.py`:
 - **Methods:**
   - `.to_dict()` / `.from_dict()` — serialization round-trip
   - `.validate(data)` — checks `type(data).__name__ == self.data_type`
-  - `.component_vars()` — generates list of sub-Vars (e.g., `force` → `force_x`, `force_y`, `force_z`)
+  - `.component_vars()` — generates list of sub-Vars (e.g., `force` → `force__x`, `force__y`, `force__z`)
   - `.unpack(data)` — returns `(list[Var], list|NDArray)` — uses `np.moveaxis` for multi-dimensional arrays
   - `.unpack_tuples(data)` — returns `list[tuple[Var, value]]`
 
@@ -112,6 +112,7 @@ All symbols exported from `src/varmeta/__init__.py`:
 - Dict-like access: `varset["temp"]` returns a `Var`; supports `in`, `len()`, iteration over keys
 - **`.to_dataframe(data)`** — unified DataFrame creation; accepts single `dict` or `list[dict]`
 - **`.unpack(data)`** — expands component variables, returns `(VarSet, dict)`
+- **`.pack(data)`** — reconstructs original structure from unpacked data with component keys
 - **`.to_dict()` / `.from_dict()`** — JSON serialization round-trip
 
 ### Shared Literal String Keys
@@ -129,8 +130,16 @@ This pattern ensures consistency and prevents key mismatches between var metadat
 - Variables can have `components=("x", "y", "z")` attribute
 - `component_axis` (default 0) specifies which axis to unpack along
 - Uses `np.moveaxis` internally → handles both Python lists and NumPy ndarrays uniformly
-- Unpacked var keys follow pattern: `{original_key}_{component}` (e.g., `force_x`, `force_y`, `force_z`)
+- Unpacked var keys follow pattern: `{original_key}__{component}` (e.g., `force__x`, `force__y`, `force__z`)
 - Unpacked var names follow pattern: `{original_name} - {component}` (e.g., `Force - x`, `Force - y`, `Force - z`)
+- **Component separator:** Double underscore `__` minimizes collision risk with regular variable names
+
+### Component Packing
+- `VarSet.pack(data)` reconstructs original structure from unpacked component data
+- Reverses the unpacking operation: `force__x`, `force__y`, `force__z` → `force: [x, y, z]`
+- Respects `component_axis` for multi-dimensional arrays
+- Validates that all required component keys are present
+- Round-trip invariant: `varset.pack(varset.unpack(data)[1]) == data`
 
 ### MultiIndex DataFrames
 - Default MultiIndex uses `(key, name, units)` tuples for each variable
@@ -260,7 +269,11 @@ df = varset.to_dataframe(records)
 ```python
 data = {TEMP: 25.0, FORCE: [10.0, 20.0, 30.0]}
 unpacked_varset, unpacked_data = varset.unpack(data)
-# unpacked_data: {"temp": 25.0, "force_x": 10.0, "force_y": 20.0, "force_z": 30.0}
+# unpacked_data: {"temp": 25.0, "force__x": 10.0, "force__y": 20.0, "force__z": 30.0}
+
+# Pack back to original structure
+packed_data = varset.pack(unpacked_data)
+# packed_data: {"temp": 25.0, "force": [10.0, 20.0, 30.0]}
 ```
 
 ### Serialize/Deserialize

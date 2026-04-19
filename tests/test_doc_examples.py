@@ -52,8 +52,8 @@ class TestDocExamples:
         print(vars)
         print(vals)
         output = repr(vars) + "\n" + repr(vals)
-        expected_output = """{'temp': Temperature [Celsius], 'force_x': Force - x [N], 'force_y': Force - y [N], 'force_z': Force - z [N]}
-{'temp': 25.0, 'force_x': 10.0, 'force_y': 20.0, 'force_z': 30.0}"""
+        expected_output = """{'temp': Temperature [Celsius], 'force__x': Force - x [N], 'force__y': Force - y [N], 'force__z': Force - z [N]}
+{'temp': 25.0, 'force__x': 10.0, 'force__y': 20.0, 'force__z': 30.0}"""
         assert output == expected_output
 
     def test_dict_to_df(self, varset):
@@ -64,12 +64,12 @@ class TestDocExamples:
         df2 = varset.to_dataframe(data_dct)
         print(df2)
         output = repr(df) + "\n" + repr(df2)
-        expected_output = """key     force_x   force_y   force_z        temp
+        expected_output = """key    force__x  force__y  force__z        temp
 name  Force - x Force - y Force - z Temperature
 units         N         N         N     Celsius
 0           200       250       -30          30
 1           300       350      -100          40
-key          temp   force_x   force_y   force_z
+key          temp  force__x  force__y  force__z
 name  Temperature Force - x Force - y Force - z
 units     Celsius         N         N         N
 0              30       200       250       -30
@@ -84,7 +84,7 @@ units     Celsius         N         N         N
         df = varset.to_dataframe(data_dict_lst)
         print(df)
         output = repr(df)
-        expected_output = """key     force_x   force_y   force_z        temp
+        expected_output = """key    force__x  force__y  force__z        temp
 name  Force - x Force - y Force - z Temperature
 units         N         N         N     Celsius
 0           200       250       -30          30

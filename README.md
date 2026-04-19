@@ -8,7 +8,7 @@
 Scientific and engineering data often has variables with multiple components (e.g., x, y, and z components of a force vector). `varmeta` makes it easy to:
 
 - Define variables once with metadata (name, units, description, components)
-- Automatically unpack component variables (e.g., `force` → `force_x`, `force_y`, `force_z`)
+- Automatically unpack component variables (e.g., `force` → `force__x`, `force__y`, `force__z`)
 - Generate pandas DataFrames with multi-index headers showing keys, names, and units
 - Serialize and deserialize variable metadata to/from JSON
 
@@ -52,15 +52,25 @@ print(varset[TEMP])  # Temperature [Celsius]
 print(varset[FORCE])  # Force [N]
 ```
 
-### 3. Unpack data with components
+### 3. Unpack and pack data with components
+
+Component variables can be unpacked (expanded) and packed (reconstructed):
 
 ```python
 data = {TEMP: 25.0, FORCE: [10.0, 20.0, 30.0]}
 
+# Unpack: expand components
 unpacked_varset, unpacked_data = varset.unpack(data)
 print(unpacked_data)
-# {'temp': 25.0, 'force_x': 10.0, 'force_y': 20.0, 'force_z': 30.0}
+# {'temp': 25.0, 'force__x': 10.0, 'force__y': 20.0, 'force__z': 30.0}
+
+# Pack: reconstruct original structure
+packed_data = varset.pack(unpacked_data)
+print(packed_data)
+# {'temp': 25.0, 'force': [10.0, 20.0, 30.0]}
 ```
+
+**Note:** Component keys use double underscore `__` separator (e.g., `force__x`) to minimize collision risk with regular variable names.
 
 ### 4. Create pandas DataFrames
 
@@ -71,7 +81,7 @@ It's easy to tabulate data into a DataFrame. Components are automatically unpack
 data = {TEMP: [30, 40], FORCE: [[200, 250, -30], [300, 350, -100]]}
 df = varset.to_dataframe(data)
 print(df)
-# key          temp   force_x   force_y   force_z
+# key          temp  force__x  force__y  force__z
 # name  Temperature Force - x Force - y Force - z
 # units     Celsius         N         N         N
 # 0              30       200       250       -30
@@ -89,7 +99,7 @@ records = [
 ]
 df = varset.to_dataframe(records)
 print(df)
-# key          temp   force_x   force_y   force_z
+# key          temp  force__x  force__y  force__z
 # name  Temperature Force - x Force - y Force - z
 # units     Celsius         N         N         N
 # 0              30       200       250       -30

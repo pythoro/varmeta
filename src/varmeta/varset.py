@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import Any, overload
 
+import numpy as np
 import pandas as pd
 
 from .vars import Var, VarData, _unpack, _vars_to_multi_index_data
@@ -227,6 +228,102 @@ class VarSet:
         
         new_vars, new_data = _unpack(self._vars, data)
         return VarSet(new_vars), new_data
+
+    def pack(
+        self, data: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Reconstruct original structure from unpacked data.
+
+        This is the reverse of unpack(). Takes data with component
+        variables expanded (e.g., force__x, force__y, force__z) and
+        reconstructs the original structure (e.g., force: [x, y, z]).
+
+        Args:
+            data: Dictionary with unpacked component keys.
+
+        Returns:
+            dict[str, Any]: Dictionary with original structure restored.
+
+        Raises:
+            TypeError: If data is not a dict.
+            KeyError: If required component keys are missing.
+
+        Examples:
+            >>> # After unpacking
+            >>> unpacked = {
+            ...     "temp": 25, "force__x": 10,
+            ...     "force__y": 20, "force__z": 30
+            ... }
+            >>> packed = varset.pack(unpacked)
+            >>> packed
+            {"temp": 25, "force": [10, 20, 30]}
+        """
+        if not isinstance(data, dict):
+            raise TypeError(
+                f"Data must be a dict, got {type(data).__name__}."
+            )
+
+        result = {}
+        processed_keys = set()
+
+        for key, var in self._vars.items():
+            if var.components:
+                # Collect component data
+                comp_keys = [
+                    f"{key}__{comp}" for comp in var.components
+                ]
+                missing = [k for k in comp_keys if k not in data]
+                if missing:
+                    raise KeyError(
+                        f"Missing component keys for '{key}': "
+                        f"{missing}. Expected keys: {comp_keys}."
+                    )
+
+                comp_data = [data[k] for k in comp_keys]
+                processed_keys.update(comp_keys)
+
+                # Check if all components are scalars or all are arrays
+                all_scalar = all(
+                    isinstance(v, int | float | np.number)
+                    for v in comp_data
+                )
+                all_array = all(
+                    isinstance(v, list | np.ndarray)
+                    for v in comp_data
+                )
+
+                if all_scalar:
+                    # Simple case: reconstruct as list
+                    result[key] = comp_data
+                elif all_array:
+                    # Stack arrays and moveaxis back to component_axis
+                    arr = np.array(comp_data)
+                    if var.component_axis != 0:
+                        arr = np.moveaxis(
+                            arr, 0, var.component_axis,
+                        )
+                    result[key] = arr.tolist()
+                else:
+                    # Mixed types - just return as list
+                    result[key] = comp_data
+            else:
+                # Non-component variable
+                if key not in data:
+                    raise KeyError(
+                        f"Missing key '{key}' in data. "
+                        f"Expected all original VarSet keys."
+                    )
+                result[key] = data[key]
+                processed_keys.add(key)
+
+        # Check for extra keys
+        extra = set(data.keys()) - processed_keys
+        if extra:
+            raise KeyError(
+                f"Extra keys in data not in VarSet: {sorted(extra)}."
+            )
+
+        return result
 
     @overload
     def to_dataframe(
