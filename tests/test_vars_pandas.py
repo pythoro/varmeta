@@ -2,13 +2,8 @@
 
 import pandas as pd
 
-from varmeta import (
-    Var,
-    VarDict,
-    dict_to_df,
-    records_to_df,
-    vars_to_multi_index_data,
-)
+from varmeta import Var, VarSet
+from varmeta.vars import _vars_to_multi_index_data
 
 
 class Test_Pandas_Integration:
@@ -101,7 +96,7 @@ class Test_Pandas_Integration:
             components=None,
         )
         vars = [var, var2]
-        tuples, names = vars_to_multi_index_data(vars)
+        tuples, names = _vars_to_multi_index_data(vars)
         columns = pd.MultiIndex.from_tuples(tuples, names=names)
         df = pd.DataFrame({"insol": [200, 300], "m": [3, 4]})
         df.columns = columns
@@ -128,9 +123,9 @@ class Test_Pandas_Integration:
             description="Mass of the object",
             components=None,
         )
-        var_dct = VarDict({"insol": var, "m": var2})
+        varset = VarSet({"insol": var, "m": var2})
         data_dct = {"insol": [200, 300], "m": [3, 4]}
-        df = dict_to_df(var_dct, data_dct)
+        df = varset.to_dataframe(data_dct)
         print(df)
         csv_output = df.to_csv(index=False, lineterminator="\n")
         print(csv_output)
@@ -155,9 +150,9 @@ class Test_Pandas_Integration:
             description="Mass of the object",
             components=None,
         )
-        var_dct = VarDict({"insol": var, "m": var2})
+        varset = VarSet({"insol": var, "m": var2})
         data_dct = {"insol": [[200, 250], [300, 350]], "m": [3, 4]}
-        df = dict_to_df(var_dct, data_dct)
+        df = varset.to_dataframe(data_dct)
         print(df)
         csv_output = df.to_csv(index=False, lineterminator="\n")
         print(csv_output)
@@ -180,14 +175,45 @@ class Test_Pandas_Integration:
             description="Mass of the object",
             components=None,
         )
-        var_dct = VarDict({"insol": var, "m": var2})
+        varset = VarSet({"insol": var, "m": var2})
         data_dict_lst = [
             {"insol": [200, 250], "m": 3},
             {"insol": [300, 350], "m": 4},
         ]
-        df = records_to_df(var_dct, data_dict_lst)
+        df = varset.to_dataframe(data_dict_lst)
         print(df)
         csv_output = df.to_csv(index=False, lineterminator="\n")
         print(csv_output)
         expected_csv = "insol_morning,insol_afternoon,m\nsolar radiation - morning,solar radiation - afternoon,mass\nW/m^2,W/m^2,kg\n200,250,3\n300,350,4\n"  # NoQA: E501
         assert csv_output == expected_csv
+
+    def test_single_row_with_scalar_and_components(self):
+        temp = Var(
+            key="temp",
+            name="Temperature",
+            units="Celsius",
+            description="Ambient temperature",
+            components=None,
+        )
+        force = Var(
+            key="force",
+            name="Force",
+            units="N",
+            description="Force vector",
+            components=("x", "y", "z"),
+            component_axis=1,
+        )
+        varset = VarSet([temp, force])
+        # Single row: scalar + component that unpacks to scalars
+        data = {"temp": 25.0, "force": [10.0, 20.0, 30.0]}
+        df = varset.to_dataframe(data)
+        print(df)
+        
+        # Should produce a single-row DataFrame with 4 columns
+        assert df.shape == (1, 4)
+        
+        # Access values by position since we have MultiIndex columns
+        assert df.iloc[0, 0] == 25.0  # temp
+        assert df.iloc[0, 1] == 10.0  # force_x
+        assert df.iloc[0, 2] == 20.0  # force_y
+        assert df.iloc[0, 3] == 30.0  # force_z

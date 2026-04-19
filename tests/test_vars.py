@@ -39,6 +39,16 @@ class TestVar:
         )
         assert str(var) == "pressure [Pascal]"
 
+    def test_var_hash(self):
+        var = Var(
+            key="pressure",
+            name="pressure on the surface",
+            units="Pascal",
+            description="Surface pressure",
+            components=None,
+        )
+        assert hash(var) == hash("pressure")
+
     def test_var_ordering(self):
         var1 = Var(
             key="temp",
