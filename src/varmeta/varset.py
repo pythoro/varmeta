@@ -28,6 +28,66 @@ class VarSet:
         >>> varset = VarSet({"temp": temperature, "force": force})
     """
 
+    def _validate_dict_vars(self, vars: dict[str, Var]) -> None:
+        """Validate dict of Vars.
+
+        Args:
+            vars: Dict mapping keys to Var instances.
+
+        Raises:
+            ValueError: If dict is empty.
+            TypeError: If any value is not a Var.
+        """
+        if not vars:
+            raise ValueError(
+                "Cannot create VarSet from empty dict. "
+                "Provide at least one Var instance."
+            )
+        for key, var in vars.items():
+            if not isinstance(var, Var):
+                raise TypeError(
+                    f"Dict values must be Var instances. "
+                    f"Key '{key}' has value of type "
+                    f"{type(var).__name__}."
+                )
+
+    def _sequence_to_dict(
+        self, vars: Sequence[Var],
+    ) -> dict[str, Var]:
+        """Convert sequence of Vars to dict.
+
+        Args:
+            vars: Sequence of Var instances.
+
+        Returns:
+            dict[str, Var]: Dict mapping keys to Vars.
+
+        Raises:
+            ValueError: If sequence is empty or has duplicates.
+            TypeError: If any item is not a Var.
+        """
+        if not vars:
+            raise ValueError(
+                "Cannot create VarSet from empty sequence. "
+                "Provide at least one Var instance."
+            )
+        for i, var in enumerate(vars):
+            if not isinstance(var, Var):
+                raise TypeError(
+                    f"Sequence items must be Var instances. "
+                    f"Item at index {i} has type "
+                    f"{type(var).__name__}."
+                )
+        result = {}
+        for var in vars:
+            if var.key in result:
+                raise ValueError(
+                    f"Duplicate key '{var.key}' found in Var "
+                    f"sequence. All Var keys must be unique."
+                )
+            result[var.key] = var
+        return result
+
     def __init__(
         self,
         vars: Sequence[Var] | dict[str, Var],
@@ -37,15 +97,21 @@ class VarSet:
         Args:
             vars: A sequence of Var instances or a dict
                 mapping string keys to Var instances.
+
+        Raises:
+            TypeError: If vars is not a Sequence or dict, or
+                contains non-Var items.
+            ValueError: If vars is empty or contains duplicate keys.
         """
         if isinstance(vars, dict):
+            self._validate_dict_vars(vars)
             self._vars: dict[str, Var] = dict(vars)
         elif isinstance(vars, Sequence):
-            self._vars = {v.key: v for v in vars}
+            self._vars = self._sequence_to_dict(vars)
         else:
             raise TypeError(
-                f"Expected Sequence[Var] or dict[str, Var],"
-                f" got {type(vars)}"
+                f"Expected Sequence[Var] or dict[str, Var], "
+                f"got {type(vars).__name__}."
             )
 
     def __getitem__(self, key: str) -> Var:
@@ -130,7 +196,35 @@ class VarSet:
             tuple[VarSet, dict[str, Any]]: A new VarSet with
                 component variables expanded, and the
                 corresponding unpacked data dict.
+
+        Raises:
+            TypeError: If data is not a dict.
+            KeyError: If data keys don't match VarSet keys.
         """
+        if not isinstance(data, dict):
+            raise TypeError(
+                f"Data must be a dict, got {type(data).__name__}."
+            )
+        # Check for missing and extra keys
+        data_keys = set(data.keys())
+        var_keys = set(self._vars.keys())
+        missing = var_keys - data_keys
+        extra = data_keys - var_keys
+        
+        if missing or extra:
+            msg_parts = []
+            if missing:
+                msg_parts.append(
+                    f"Missing keys in data: {sorted(missing)}"
+                )
+            if extra:
+                msg_parts.append(
+                    f"Extra keys in data: {sorted(extra)}"
+                )
+            msg = ". ".join(msg_parts)
+            msg += f". Expected keys: {sorted(var_keys)}."
+            raise KeyError(msg)
+        
         new_vars, new_data = _unpack(self._vars, data)
         return VarSet(new_vars), new_data
 
@@ -184,7 +278,42 @@ class VarSet:
 
         Returns:
             pd.DataFrame: DataFrame with MultiIndex columns.
+
+        Raises:
+            TypeError: If data is not a dict.
+            KeyError: If data keys don't match VarSet keys.
+            ValueError: If data is empty.
         """
+        if not isinstance(data, dict):
+            raise TypeError(
+                f"Data must be a dict, got {type(data).__name__}. "
+                f"For multiple records, pass a list of dicts."
+            )
+        if not data:
+            raise ValueError(
+                "Cannot create DataFrame from empty data dict."
+            )
+        
+        # Check for missing and extra keys
+        data_keys = set(data.keys())
+        var_keys = set(self._vars.keys())
+        missing = var_keys - data_keys
+        extra = data_keys - var_keys
+        
+        if missing or extra:
+            msg_parts = []
+            if missing:
+                msg_parts.append(
+                    f"Missing keys in data: {sorted(missing)}"
+                )
+            if extra:
+                msg_parts.append(
+                    f"Extra keys in data: {sorted(extra)}"
+                )
+            msg = ". ".join(msg_parts)
+            msg += f". Expected keys: {sorted(var_keys)}."
+            raise KeyError(msg)
+        
         unpacked_vars, unpacked_data = _unpack(
             self._vars, data,
         )
@@ -230,11 +359,50 @@ class VarSet:
             pd.DataFrame: DataFrame with MultiIndex columns.
 
         Raises:
+            TypeError: If data_list is not a list or contains non-dict items.
             ValueError: If the data list is empty.
+            KeyError: If record keys don't match VarSet keys.
         """
+        if not isinstance(data_list, list):
+            raise TypeError(
+                f"Data must be a list of dicts, got "
+                f"{type(data_list).__name__}. "
+                f"For a single record, pass a dict directly."
+            )
+        if not data_list:
+            raise ValueError(
+                "Cannot create DataFrame from empty list. "
+                "Provide at least one data dict."
+            )
+        
         var_list = None
         unpacked = []
-        for record in data_list:
+        for i, record in enumerate(data_list):
+            if not isinstance(record, dict):
+                raise TypeError(
+                    f"All records must be dicts. "
+                    f"Record at index {i} has type {type(record).__name__}."
+                )
+            
+            # Check for missing and extra keys
+            data_keys = set(record.keys())
+            var_keys = set(self._vars.keys())
+            missing = var_keys - data_keys
+            extra = data_keys - var_keys
+            
+            if missing or extra:
+                msg_parts = [f"Record at index {i}:"]
+                if missing:
+                    msg_parts.append(
+                        f"missing keys {sorted(missing)}"
+                    )
+                if extra:
+                    msg_parts.append(
+                        f"extra keys {sorted(extra)}"
+                    )
+                msg = " ".join(msg_parts)
+                msg += f". Expected keys: {sorted(var_keys)}."
+                raise KeyError(msg)
             unpacked_vars, unpacked_data = _unpack(
                 self._vars, record,
             )
@@ -281,8 +449,31 @@ class VarSet:
 
         Returns:
             VarSet: A new VarSet instance.
+
+        Raises:
+            TypeError: If data is not a dict or contains invalid VarData.
+            ValueError: If data is empty.
+            KeyError: If required VarData fields are missing.
         """
-        return cls({
-            key: Var.from_dict(var_data)
-            for key, var_data in data.items()
-        })
+        if not isinstance(data, dict):
+            raise TypeError(
+                f"Data must be a dict, got {type(data).__name__}."
+            )
+        if not data:
+            raise ValueError(
+                "Cannot create VarSet from empty dict."
+            )
+        
+        try:
+            return cls({
+                key: Var.from_dict(var_data)
+                for key, var_data in data.items()
+            })
+        except KeyError as e:
+            raise KeyError(
+                f"Invalid VarData structure: {e}"
+            ) from e
+        except TypeError as e:
+            raise TypeError(
+                f"Invalid VarData structure: {e}"
+            ) from e

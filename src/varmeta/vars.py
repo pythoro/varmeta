@@ -77,19 +77,43 @@ class Var:
 
         Returns:
             Var: A Var instance created from the input dictionary.
+
+        Raises:
+            TypeError: If dct is not a dict.
+            KeyError: If required fields are missing.
         """
+        if not isinstance(dct, dict):
+            raise TypeError(
+                f"Expected dict, got {type(dct).__name__}."
+            )
+        
+        # Check for required fields
+        required = ["key", "name", "units", "description"]
+        missing = [f for f in required if f not in dct]
+        if missing:
+            raise KeyError(
+                f"Missing required fields in VarData: {missing}. "
+                f"Required fields: {required}."
+            )
+        
         c = dct.get("components")
         if isinstance(c, list):
             c = tuple(c)
-        return cls(
-            key=dct["key"],
-            name=dct["name"],
-            units=dct["units"],
-            description=dct["description"],
-            components=c,
-            component_axis=dct.get("component_axis", 0),
-            data_type=dct.get("data_type", "object"),
-        )
+        
+        try:
+            return cls(
+                key=dct["key"],
+                name=dct["name"],
+                units=dct["units"],
+                description=dct["description"],
+                components=c,
+                component_axis=dct.get("component_axis", 0),
+                data_type=dct.get("data_type", "object"),
+            )
+        except TypeError as e:
+            raise TypeError(
+                f"Invalid field types in VarData: {e}"
+            ) from e
 
     def to_dict(self) -> VarData:
         """Convert the Var to a dictionary.
@@ -156,25 +180,62 @@ class Var:
             unpacked values.
 
         Raises:
-            ValueError: If no components to unpack or data is not iterable.
+            ValueError: If no components to unpack, data is not iterable,
+                or component count doesn't match.
         """
         if self.components is None:
-            raise ValueError("No components to unpack")
+            raise ValueError(
+                f"Var '{self.key}' has no components to unpack. "
+                f"Set components=(comp1, comp2, ...) when creating the Var."
+            )
         if isinstance(data, float | int):
-            raise ValueError("Values must be iterable")
-        data_array = np.asarray(data)
+            raise ValueError(
+                f"Cannot unpack scalar value for Var '{self.key}'. "
+                f"Expected array-like data with "
+                f"{len(self.components)} components."
+            )
+        
+        try:
+            data_array = np.asarray(data)
+        except (ValueError, TypeError) as e:
+            raise ValueError(
+                f"Cannot convert data to array for Var '{self.key}': {e}"
+            ) from e
+        
         if data_array.ndim < 1:
-            raise ValueError("Data must be at least 1-dimensional to unpack.")
+            raise ValueError(
+                f"Data for Var '{self.key}' must be at least "
+                f"1-dimensional to unpack. Got shape {data_array.shape}."
+            )
+        
         if data_array.ndim == 1:
             # Ignore the axis as there's only one dimension
             subvals = data_array
+            # Check component count
+            if len(subvals) != len(self.components):
+                raise ValueError(
+                    f"Component count mismatch for Var '{self.key}'. "
+                    f"Expected {len(self.components)} components "
+                    f"{self.components}, but data has {len(subvals)} "
+                    f"values."
+                )
         elif self.component_axis > data_array.ndim - 1:
             raise ValueError(
-                f"Component axis {self.component_axis} is out of bounds for"
-                + " data with {data_array.ndim} dimensions."
+                f"Component axis {self.component_axis} is out of bounds for "
+                f"Var '{self.key}' with data shape {data_array.shape} "
+                f"({data_array.ndim} dimensions)."
             )
         else:
             subvals = np.moveaxis(data_array, self.component_axis, 0)  # type: ignore
+            # Check component count
+            if len(subvals) != len(self.components):
+                raise ValueError(
+                    f"Component count mismatch for Var '{self.key}'. "
+                    f"Expected {len(self.components)} components "
+                    f"{self.components}, but data has {len(subvals)} "
+                    f"values along axis {self.component_axis}."
+                )
+        
         if not isinstance(data, np.ndarray):
             subvals = subvals.tolist()
         subvars = self.component_vars()
@@ -240,11 +301,30 @@ def _vars_to_multi_index_data(
     Returns:
         tuple[list[tuple[str, ...]], list[str]]: Tuples for
             MultiIndex and the attribute names.
+
+    Raises:
+        AttributeError: If an attr name doesn't exist on Var.
     """
     tuples = []
     attrs = ["key", "name", "units"] if attrs is None else attrs
-    for var in lst:
-        tuples.append(
-            tuple(getattr(var, attr) for attr in attrs)
+    
+    # Validate attrs
+    valid_attrs = ["key", "name", "units", "description", 
+                   "components", "component_axis", "data_type"]
+    invalid = [a for a in attrs if a not in valid_attrs]
+    if invalid:
+        raise AttributeError(
+            f"Invalid attribute names: {invalid}. "
+            f"Valid attributes: {valid_attrs}."
         )
+    
+    for var in lst:
+        try:
+            tuples.append(
+                tuple(getattr(var, attr) for attr in attrs)
+            )
+        except AttributeError as e:
+            raise AttributeError(
+                f"Error getting attributes from Var '{var.key}': {e}"
+            ) from e
     return tuples, attrs
