@@ -225,11 +225,87 @@ class TestVarSetPackErrors:
         )
         varset = vm.VarSet([temp, force])
 
-        # Missing temp
+        # Missing temp - should raise with raise_missing=True
         unpacked = {"force__x": 10.0, "force__y": 20.0, "force__z": 30.0}
 
         with pytest.raises(KeyError, match="Missing key 'temp' in data"):
-            varset.pack(unpacked)
+            varset.pack(unpacked, raise_missing=True)
+
+    def test_pack_missing_non_component_key_no_raise(self):
+        """Test that missing non-component vars are skipped when raise_missing=False."""
+        temp = vm.Var(key="temp", name="Temperature", units="C", description="Temp")
+        force = vm.Var(
+            key="force",
+            name="Force",
+            units="N",
+            description="Force",
+            components=("x", "y", "z"),
+        )
+        varset = vm.VarSet([temp, force])
+
+        # Missing temp - should skip it with raise_missing=False (default)
+        unpacked = {"force__x": 10.0, "force__y": 20.0, "force__z": 30.0}
+        packed = varset.pack(unpacked)
+
+        # Should only have force, not temp
+        assert packed == {"force": [10.0, 20.0, 30.0]}
+
+    def test_pack_missing_component_variable_no_raise(self):
+        """Test that missing component vars are skipped when raise_missing=False."""
+        temp = vm.Var(key="temp", name="Temperature", units="C", description="Temp")
+        force = vm.Var(
+            key="force",
+            name="Force",
+            units="N",
+            description="Force",
+            components=("x", "y", "z"),
+        )
+        varset = vm.VarSet([temp, force])
+
+        # Missing force components - should skip it with raise_missing=False (default)
+        unpacked = {"temp": 25.0}
+        packed = varset.pack(unpacked)
+
+        # Should only have temp, not force
+        assert packed == {"temp": 25.0}
+
+    def test_pack_missing_component_variable_raise(self):
+        """Test that missing component vars raise when raise_missing=True."""
+        temp = vm.Var(key="temp", name="Temperature", units="C", description="Temp")
+        force = vm.Var(
+            key="force",
+            name="Force",
+            units="N",
+            description="Force",
+            components=("x", "y", "z"),
+        )
+        varset = vm.VarSet([temp, force])
+
+        # Missing force components
+        unpacked = {"temp": 25.0}
+
+        with pytest.raises(KeyError, match="Missing variable 'force' in data"):
+            varset.pack(unpacked, raise_missing=True)
+
+    def test_pack_partial_component_keys_always_raises(self):
+        """Test that partial component keys always raise, regardless of raise_missing."""
+        force = vm.Var(
+            key="force",
+            name="Force",
+            units="N",
+            description="Force",
+            components=("x", "y", "z"),
+        )
+        varset = vm.VarSet([force])
+
+        # Only some components present - should always raise
+        unpacked = {"force__x": 10.0, "force__y": 20.0}  # Missing force__z
+
+        with pytest.raises(KeyError, match="Missing component keys.*\\['force__z'\\]"):
+            varset.pack(unpacked, raise_missing=False)
+
+        with pytest.raises(KeyError, match="Missing component keys.*\\['force__z'\\]"):
+            varset.pack(unpacked, raise_missing=True)
 
     def test_pack_extra_keys(self):
         temp = vm.Var(key="temp", name="Temperature", units="C", description="Temp")

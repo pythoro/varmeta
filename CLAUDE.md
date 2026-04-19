@@ -111,8 +111,12 @@ All symbols exported from `src/varmeta/__init__.py`:
 - Accepts `Sequence[Var]` or `dict[str, Var]` in constructor
 - Dict-like access: `varset["temp"]` returns a `Var`; supports `in`, `len()`, iteration over keys
 - **`.to_dataframe(data)`** — unified DataFrame creation; accepts single `dict` or `list[dict]`
-- **`.unpack(data)`** — expands component variables, returns `(VarSet, dict)`
-- **`.pack(data)`** — reconstructs original structure from unpacked data with component keys
+- **`.unpack(data, raise_extra=False)`** — expands component variables, returns `(VarSet, dict)`
+  - `raise_extra=True` raises KeyError for extra keys in data not in VarSet
+  - `raise_extra=False` (default) silently ignores extra keys
+- **`.pack(data, raise_missing=False)`** — reconstructs original structure from unpacked data with component keys
+  - `raise_missing=True` raises KeyError if variables in VarSet are missing from data
+  - `raise_missing=False` (default) silently skips missing variables
 - **`.to_dict()` / `.from_dict()`** — JSON serialization round-trip
 
 ### Shared Literal String Keys
@@ -135,11 +139,14 @@ This pattern ensures consistency and prevents key mismatches between var metadat
 - **Component separator:** Double underscore `__` minimizes collision risk with regular variable names
 
 ### Component Packing
-- `VarSet.pack(data)` reconstructs original structure from unpacked component data
+- `VarSet.pack(data, raise_missing=False)` reconstructs original structure from unpacked component data
 - Reverses the unpacking operation: `force__x`, `force__y`, `force__z` → `force: [x, y, z]`
 - Respects `component_axis` for multi-dimensional arrays
-- Validates that all required component keys are present
-- Round-trip invariant: `varset.pack(varset.unpack(data)[1]) == data`
+- Optional `raise_missing` parameter (default False):
+  - `raise_missing=True`: Raises KeyError if variables in VarSet are missing from data
+  - `raise_missing=False`: Silently skips variables not present in data
+- Partial component keys always raise an error (e.g., having `force__x` but missing `force__y`)
+- Round-trip invariant (when all data present): `varset.pack(varset.unpack(data)[1]) == data`
 
 ### MultiIndex DataFrames
 - Default MultiIndex uses `(key, name, units)` tuples for each variable

@@ -70,7 +70,11 @@ print(packed_data)
 # {'temp': 25.0, 'force': [10.0, 20.0, 30.0]}
 ```
 
-**Note:** Component keys use double underscore `__` separator (e.g., `force__x`) to minimize collision risk with regular variable names.
+**Component separator:** Double underscore `__` (e.g., `force__x`) minimizes collision risk with regular variable names.
+
+**Optional error handling:**
+- `unpack(data, raise_extra=True)`: Raise error if data contains extra keys not in VarSet (default: silently ignore)
+- `pack(data, raise_missing=True)`: Raise error if VarSet variables are missing from data (default: silently skip)
 
 ### 4. Create pandas DataFrames
 

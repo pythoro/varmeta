@@ -96,14 +96,20 @@ class TestVarSetUnpack:
         temp = vm.Var(key="temp", name="Temperature", units="C", description="Temp")
         varset = vm.VarSet([temp])
         with pytest.raises(KeyError, match="Extra keys in data.*\\['humidity'\\]"):
-            varset.unpack({"temp": 25.0, "humidity": 50.0})
+            varset.unpack({"temp": 25.0, "humidity": 50.0}, raise_extra=True)
 
     def test_missing_and_extra_keys(self):
         temp = vm.Var(key="temp", name="Temperature", units="C", description="Temp")
         pressure = vm.Var(key="pressure", name="Pressure", units="Pa", description="Pressure")
         varset = vm.VarSet([temp, pressure])
         with pytest.raises(KeyError, match="Missing keys.*Extra keys"):
-            varset.unpack({"temp": 25.0, "humidity": 50.0})
+            varset.unpack({"temp": 25.0, "humidity": 50.0}, raise_extra=True)
+
+    def test_extra_keys_no_raise_extra(self):
+        temp = vm.Var(key="temp", name="Temperature", units="C", description="Temp")
+        varset = vm.VarSet([temp])
+        # Should not raise an error because raise_extra is False by default
+        varset.unpack({"temp": 25.0, "humidity": 50.0})
 
 
 class TestVarSetToDataFrameDict:
