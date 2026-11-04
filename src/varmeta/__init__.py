@@ -5,10 +5,13 @@ component support, enabling robust metadata handling, serialization, and
 integration with pandas and other tools.
 """
 
+from .columns import ColumnMatch, ColumnNaming
 from .vars import Var, VarData
 from .varset import VarSet
 
 __all__ = [
+    "ColumnMatch",
+    "ColumnNaming",
     "Var",
     "VarData",
     "VarSet",

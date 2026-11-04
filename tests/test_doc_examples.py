@@ -41,8 +41,10 @@ class TestDocExamples:
         data_dct = {TEMP: 25.0, FORCE: [10.0, 20.0, 30.0]}
 
         output = repr(varset) + "\n" + repr(data_dct)
-        expected_output = """{'temp': Temperature [Celsius], 'force': Force [N]}
-{'temp': 25.0, 'force': [10.0, 20.0, 30.0]}"""
+        expected_output = (
+            "{'temp': Temperature [Celsius], 'force': Force [N]}\n"
+            "{'temp': 25.0, 'force': [10.0, 20.0, 30.0]}"
+        )
         assert output == expected_output
 
     def test_unpack_1(self, varset):
@@ -52,8 +54,12 @@ class TestDocExamples:
         print(vars)
         print(vals)
         output = repr(vars) + "\n" + repr(vals)
-        expected_output = """{'temp': Temperature [Celsius], 'force__x': Force - x [N], 'force__y': Force - y [N], 'force__z': Force - z [N]}
-{'temp': 25.0, 'force__x': 10.0, 'force__y': 20.0, 'force__z': 30.0}"""
+        expected_output = (
+            "{'temp': Temperature [Celsius], 'force__x': Force - x [N], "
+            "'force__y': Force - y [N], 'force__z': Force - z [N]}\n"
+            "{'temp': 25.0, 'force__x': 10.0, 'force__y': 20.0, "
+            "'force__z': 30.0}"
+        )
         assert output == expected_output
 
     def test_dict_to_df(self, varset):
@@ -97,3 +103,31 @@ units         N         N         N     Celsius
         varset_recreated = vm.VarSet.from_dict(var_data)
         for k in varset_recreated:
             assert varset_recreated[k] == varset[k]
+
+    def test_describing_table_columns(self, varset):
+        extra = vm.Var(
+            key="speed", name="Speed", units="m/s", description="Speed"
+        )
+        combined = varset | vm.VarSet([extra])
+
+        naming = vm.ColumnNaming(
+            separator="_",
+            prefixes=("loads_",),
+            derived=("mag",),
+        )
+        lines = []
+        for column in ["temp", "loads_force_x", "force_mag", "speed", "other"]:
+            match = combined.match_column(column, naming)
+            if match is None:
+                lines.append(f"{column}: no match")
+            else:
+                lines.append(
+                    f"{column}: {match.var.key} {match.component} "
+                    f"[{match.var.units}]"
+                )
+        expected_output = """temp: temp None [Celsius]
+loads_force_x: force x [N]
+force_mag: force mag [N]
+speed: speed None [m/s]
+other: no match"""
+        assert "\n".join(lines) == expected_output

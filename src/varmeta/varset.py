@@ -8,6 +8,7 @@ from typing import Any, overload
 import numpy as np
 import pandas as pd
 
+from .columns import ColumnMatch, ColumnNaming
 from .vars import Var, VarData, _unpack, _vars_to_multi_index_data
 
 
@@ -160,6 +161,81 @@ class VarSet:
             str: String representation of the VarSet.
         """
         return repr(self._vars)
+
+    def __or__(self, other: object) -> VarSet:
+        """Merge two VarSets.
+
+        Args:
+            other: The VarSet whose new Vars are appended.
+
+        Returns:
+            VarSet: A new VarSet with this VarSet's Vars in order,
+                followed by the Vars of ``other`` whose keys are new.
+                Neither input is modified.
+
+        Raises:
+            ValueError: If a key is in both VarSets but the Vars
+                differ.
+
+        Examples:
+            >>> combined = base_varset | VarSet([extra_var])
+        """
+        if not isinstance(other, VarSet):
+            return NotImplemented
+        merged = dict(self._vars)
+        for key, var in other._vars.items():
+            if key not in merged:
+                merged[key] = var
+                continue
+            existing = merged[key]
+            if existing.key != var.key or existing != var:
+                raise ValueError(
+                    f"Cannot merge VarSets: key '{key}' is defined "
+                    f"differently in each ({existing!r} vs {var!r})."
+                )
+        return VarSet(merged)
+
+    def match_column(
+        self, column: str, naming: ColumnNaming | None = None,
+    ) -> ColumnMatch | None:
+        """Find the Var that a flat table column name refers to.
+
+        The whole column is tried first as a key, then the column
+        split at its last ``naming.separator`` into a stem and a
+        component. For each stem, the stem itself is tried, then the
+        stem with each of ``naming.prefixes`` removed, in order. A
+        suffixed column only matches a Var with components, and the
+        suffix must be one of its components or in
+        ``naming.derived``. The first accepted candidate wins.
+
+        Args:
+            column: The flat column name.
+            naming: The column naming rule. Defaults to
+                ``ColumnNaming()``, which matches the
+                ``{key}__{component}`` keys made by ``unpack``.
+
+        Returns:
+            ColumnMatch | None: The match, giving the parent Var and
+                component, or None if the column matches no Var.
+
+        Examples:
+            >>> naming = ColumnNaming(separator="_", derived=("mag",))
+            >>> varset.match_column("force_mag", naming).component
+            'mag'
+        """
+        if naming is None:
+            naming = ColumnNaming()
+        candidates: list[tuple[str, str | None]] = [(column, None)]
+        if naming.separator in column:
+            stem, _, component = column.rpartition(naming.separator)
+            candidates.append((stem, component))
+        for stem, component in candidates:
+            keys = [stem] + [stem.removeprefix(p) for p in naming.prefixes]
+            for key in keys:
+                var = self._vars.get(key)
+                if var is not None and _accepts(var, component, naming):
+                    return ColumnMatch(column, var, component, stem)
+        return None
 
     def keys(self) -> dict[str, Var].keys:  # type: ignore[type-arg]
         """Return the string keys.
@@ -619,3 +695,24 @@ class VarSet:
             raise TypeError(
                 f"Invalid VarData structure: {e}"
             ) from e
+
+
+def _accepts(
+    var: Var, component: str | None, naming: ColumnNaming,
+) -> bool:
+    """Check whether a Var accepts a column's component suffix.
+
+    Args:
+        var: The candidate Var.
+        component: The column's component suffix, or None for a
+            whole-Var column.
+        naming: The column naming rule.
+
+    Returns:
+        bool: True if the column matches the Var.
+    """
+    if component is None:
+        return True
+    if not var.components:
+        return False
+    return component in var.components or component in naming.derived
