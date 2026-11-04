@@ -130,9 +130,42 @@ for key in varset:
 # Output:
 # temp: matches!
 # force: matches!
-``` 
+```
 
+## Describing table columns
 
+Tables written by other tools often use their own flat column names, such
+as `force_x` or `loads_force_x`. `VarSet.match_column` finds the Var a
+column refers to, so you can look up its units and description.
+Combine VarSets with `|` to add your own Vars to a library's set.
 
+```python
+extra = vm.Var(key="speed", name="Speed", units="m/s", description="Speed")
+combined = varset | vm.VarSet([extra])
 
+naming = vm.ColumnNaming(
+    separator="_",          # between key and component
+    prefixes=("loads_",),   # group prefixes to strip
+    derived=("mag",),       # extra suffixes for any vector Var
+)
+for column in ["temp", "loads_force_x", "force_mag", "speed", "other"]:
+    match = combined.match_column(column, naming)
+    if match is None:
+        print(f"{column}: no match")
+    else:
+        print(f"{column}: {match.var.key} {match.component} "
+              f"[{match.var.units}]")
+# temp: temp None [Celsius]
+# loads_force_x: force x [N]
+# force_mag: force mag [N]
+# speed: speed None [m/s]
+# other: no match
+```
 
+`match_column` returns a `ColumnMatch(column, var, component, stem)` with
+the parent Var, or `None` for an unknown column. The whole column name is
+tried first, then the column split at its last separator. Without a
+`naming` argument it uses varmeta's own `{key}__{component}` convention,
+so it matches every column key made by `to_dataframe` and `unpack`.
+Merging raises `ValueError` if both VarSets define the same key
+differently.

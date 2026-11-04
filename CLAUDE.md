@@ -1,6 +1,6 @@
 # varmeta — AI Assistant Context Guide
 
-**Version:** 0.2.0  
+**Version:** 0.3.0  
 **Python:** ≥ 3.11  
 **Last Updated:** April 19, 2026
 
@@ -43,6 +43,7 @@ varmeta/
 ├── src/
 │   └── varmeta/
 │       ├── __init__.py    # Public API re-exports (Var, VarData, VarSet)
+│       ├── columns.py     # ColumnNaming, ColumnMatch
 │       ├── vars.py        # Core: Var dataclass, VarData TypedDict, internal helpers
 │       └── varset.py      # VarSet: collection class with DataFrame/unpack/serialization
 └── tests/
@@ -50,6 +51,7 @@ varmeta/
     ├── test_vars_numpy.py     # NumPy-specific unpacking tests
     ├── test_vars_pandas.py    # DataFrame integration tests
     ├── test_vars_json.py      # JSON serialization round-trip tests
+    ├── test_varset_columns.py # VarSet merge and match_column tests
     └── test_doc_examples.py   # Integration tests mirroring README examples
 ```
 
@@ -86,6 +88,10 @@ All symbols exported from `src/varmeta/__init__.py`:
 - **`Var`** — Frozen, ordered dataclass representing a variable with metadata (key, name, units, description, components, component_axis, data_type)
 - **`VarData`** — `TypedDict` for `Var` serialization (all fields of `Var` as dict keys)
 
+### Column Naming
+- **`ColumnNaming`** — Frozen dataclass describing how a flat table names columns (`separator`, `prefixes`, `derived`)
+- **`ColumnMatch`** — `NamedTuple` returned by `VarSet.match_column`: `(column, var, component, stem)`, where `var` is the parent Var
+
 ### Container
 - **`VarSet`** — An ordered collection of `Var` instances with dict-like access, DataFrame construction, component unpacking, and serialization
 
@@ -118,6 +124,8 @@ All symbols exported from `src/varmeta/__init__.py`:
   - `raise_missing=True` raises KeyError if variables in VarSet are missing from data
   - `raise_missing=False` (default) silently skips missing variables
 - **`.to_dict()` / `.from_dict()`** — JSON serialization round-trip
+- **`a | b`** — merge: `a`'s Vars then `b`'s new keys; a shared key with differing Vars raises `ValueError`
+- **`.match_column(column, naming=None)`** — returns `ColumnMatch` or `None`; tries the whole column, then the split at the last `separator`; for each stem tries it as-is then with each prefix removed; a suffix only matches a Var with components (suffix in `components` or `naming.derived`)
 
 ### Shared Literal String Keys
 ```python

@@ -97,3 +97,31 @@ units         N         N         N     Celsius
         varset_recreated = vm.VarSet.from_dict(var_data)
         for k in varset_recreated:
             assert varset_recreated[k] == varset[k]
+
+    def test_describing_table_columns(self, varset):
+        extra = vm.Var(
+            key="speed", name="Speed", units="m/s", description="Speed"
+        )
+        combined = varset | vm.VarSet([extra])
+
+        naming = vm.ColumnNaming(
+            separator="_",
+            prefixes=("loads_",),
+            derived=("mag",),
+        )
+        lines = []
+        for column in ["temp", "loads_force_x", "force_mag", "speed", "other"]:
+            match = combined.match_column(column, naming)
+            if match is None:
+                lines.append(f"{column}: no match")
+            else:
+                lines.append(
+                    f"{column}: {match.var.key} {match.component} "
+                    f"[{match.var.units}]"
+                )
+        expected_output = """temp: temp None [Celsius]
+loads_force_x: force x [N]
+force_mag: force mag [N]
+speed: speed None [m/s]
+other: no match"""
+        assert "\n".join(lines) == expected_output
