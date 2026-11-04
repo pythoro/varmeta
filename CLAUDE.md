@@ -59,6 +59,12 @@ varmeta/
 
 ## Commands
 
+> **TLS note:** on this machine, `uv run` fails with
+> `invalid peer certificate: UnknownIssuer` when it needs to reach PyPI
+> (e.g. after a version bump triggers a rebuild). Add `--system-certs`
+> to use the system certificate store, e.g.
+> `uv run --system-certs pytest`.
+
 ### Testing
 ```bash
 uv run pytest              # Run all tests

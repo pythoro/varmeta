@@ -41,8 +41,10 @@ class TestDocExamples:
         data_dct = {TEMP: 25.0, FORCE: [10.0, 20.0, 30.0]}
 
         output = repr(varset) + "\n" + repr(data_dct)
-        expected_output = """{'temp': Temperature [Celsius], 'force': Force [N]}
-{'temp': 25.0, 'force': [10.0, 20.0, 30.0]}"""
+        expected_output = (
+            "{'temp': Temperature [Celsius], 'force': Force [N]}\n"
+            "{'temp': 25.0, 'force': [10.0, 20.0, 30.0]}"
+        )
         assert output == expected_output
 
     def test_unpack_1(self, varset):
@@ -52,8 +54,12 @@ class TestDocExamples:
         print(vars)
         print(vals)
         output = repr(vars) + "\n" + repr(vals)
-        expected_output = """{'temp': Temperature [Celsius], 'force__x': Force - x [N], 'force__y': Force - y [N], 'force__z': Force - z [N]}
-{'temp': 25.0, 'force__x': 10.0, 'force__y': 20.0, 'force__z': 30.0}"""
+        expected_output = (
+            "{'temp': Temperature [Celsius], 'force__x': Force - x [N], "
+            "'force__y': Force - y [N], 'force__z': Force - z [N]}\n"
+            "{'temp': 25.0, 'force__x': 10.0, 'force__y': 20.0, "
+            "'force__z': 30.0}"
+        )
         assert output == expected_output
 
     def test_dict_to_df(self, varset):

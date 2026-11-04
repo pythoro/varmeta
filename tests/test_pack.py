@@ -11,7 +11,9 @@ class TestVarSetPack:
 
     def test_pack_scalar_components(self):
         """Test packing scalar component values."""
-        temp = vm.Var(key="temp", name="Temperature", units="C", description="Temp")
+        temp = vm.Var(
+            key="temp", name="Temperature", units="C", description="Temp"
+        )
         force = vm.Var(
             key="force",
             name="Force",
@@ -22,7 +24,12 @@ class TestVarSetPack:
         varset = vm.VarSet([temp, force])
 
         # Unpacked data
-        unpacked = {"temp": 25.0, "force__x": 10.0, "force__y": 20.0, "force__z": 30.0}
+        unpacked = {
+            "temp": 25.0,
+            "force__x": 10.0,
+            "force__y": 20.0,
+            "force__z": 30.0,
+        }
 
         # Pack it back
         packed = varset.pack(unpacked)
@@ -31,7 +38,9 @@ class TestVarSetPack:
 
     def test_pack_array_components(self):
         """Test packing array component values."""
-        temp = vm.Var(key="temp", name="Temperature", units="C", description="Temp")
+        temp = vm.Var(
+            key="temp", name="Temperature", units="C", description="Temp"
+        )
         force = vm.Var(
             key="force",
             name="Force",
@@ -82,7 +91,7 @@ class TestVarSetPack:
         assert packed["insol"] == expected
 
     def test_pack_with_component_axis_0(self):
-        """Test packing with component_axis=0 (components along first dimension)."""
+        """Test packing with component_axis=0 (components on first axis)."""
         force = vm.Var(
             key="force",
             name="Force",
@@ -109,8 +118,12 @@ class TestVarSetPack:
 
     def test_pack_no_components(self):
         """Test packing with no component variables."""
-        temp = vm.Var(key="temp", name="Temperature", units="C", description="Temp")
-        pressure = vm.Var(key="pressure", name="Pressure", units="Pa", description="Pressure")
+        temp = vm.Var(
+            key="temp", name="Temperature", units="C", description="Temp"
+        )
+        pressure = vm.Var(
+            key="pressure", name="Pressure", units="Pa", description="Pressure"
+        )
         varset = vm.VarSet([temp, pressure])
 
         data = {"temp": 25.0, "pressure": 101325}
@@ -120,7 +133,9 @@ class TestVarSetPack:
 
     def test_pack_mixed_scalars_and_components(self):
         """Test packing with mix of scalar and component variables."""
-        temp = vm.Var(key="temp", name="Temperature", units="C", description="Temp")
+        temp = vm.Var(
+            key="temp", name="Temperature", units="C", description="Temp"
+        )
         force = vm.Var(
             key="force",
             name="Force",
@@ -144,7 +159,9 @@ class TestVarSetPack:
 
     def test_pack_round_trip_with_unpack(self):
         """Test that pack(unpack(data)) == data."""
-        temp = vm.Var(key="temp", name="Temperature", units="C", description="Temp")
+        temp = vm.Var(
+            key="temp", name="Temperature", units="C", description="Temp"
+        )
         force = vm.Var(
             key="force",
             name="Force",
@@ -193,7 +210,9 @@ class TestVarSetPackErrors:
     """Test error handling in VarSet.pack()."""
 
     def test_pack_not_a_dict(self):
-        temp = vm.Var(key="temp", name="Temperature", units="C", description="Temp")
+        temp = vm.Var(
+            key="temp", name="Temperature", units="C", description="Temp"
+        )
         varset = vm.VarSet([temp])
         with pytest.raises(TypeError, match="Data must be a dict"):
             varset.pack("not a dict")
@@ -211,11 +230,15 @@ class TestVarSetPackErrors:
         # Missing force__z
         unpacked = {"force__x": 10.0, "force__y": 20.0}
 
-        with pytest.raises(KeyError, match="Missing component keys.*\\['force__z'\\]"):
+        with pytest.raises(
+            KeyError, match="Missing component keys.*\\['force__z'\\]"
+        ):
             varset.pack(unpacked)
 
     def test_pack_missing_non_component_key(self):
-        temp = vm.Var(key="temp", name="Temperature", units="C", description="Temp")
+        temp = vm.Var(
+            key="temp", name="Temperature", units="C", description="Temp"
+        )
         force = vm.Var(
             key="force",
             name="Force",
@@ -232,8 +255,10 @@ class TestVarSetPackErrors:
             varset.pack(unpacked, raise_missing=True)
 
     def test_pack_missing_non_component_key_no_raise(self):
-        """Test that missing non-component vars are skipped when raise_missing=False."""
-        temp = vm.Var(key="temp", name="Temperature", units="C", description="Temp")
+        """Test missing non-component vars are skipped if not raise_missing."""
+        temp = vm.Var(
+            key="temp", name="Temperature", units="C", description="Temp"
+        )
         force = vm.Var(
             key="force",
             name="Force",
@@ -251,8 +276,10 @@ class TestVarSetPackErrors:
         assert packed == {"force": [10.0, 20.0, 30.0]}
 
     def test_pack_missing_component_variable_no_raise(self):
-        """Test that missing component vars are skipped when raise_missing=False."""
-        temp = vm.Var(key="temp", name="Temperature", units="C", description="Temp")
+        """Test missing component vars are skipped if not raise_missing."""
+        temp = vm.Var(
+            key="temp", name="Temperature", units="C", description="Temp"
+        )
         force = vm.Var(
             key="force",
             name="Force",
@@ -262,7 +289,8 @@ class TestVarSetPackErrors:
         )
         varset = vm.VarSet([temp, force])
 
-        # Missing force components - should skip it with raise_missing=False (default)
+        # Missing force components - skipped with raise_missing=False
+        # (the default)
         unpacked = {"temp": 25.0}
         packed = varset.pack(unpacked)
 
@@ -271,7 +299,9 @@ class TestVarSetPackErrors:
 
     def test_pack_missing_component_variable_raise(self):
         """Test that missing component vars raise when raise_missing=True."""
-        temp = vm.Var(key="temp", name="Temperature", units="C", description="Temp")
+        temp = vm.Var(
+            key="temp", name="Temperature", units="C", description="Temp"
+        )
         force = vm.Var(
             key="force",
             name="Force",
@@ -288,7 +318,7 @@ class TestVarSetPackErrors:
             varset.pack(unpacked, raise_missing=True)
 
     def test_pack_partial_component_keys_always_raises(self):
-        """Test that partial component keys always raise, regardless of raise_missing."""
+        """Test partial component keys always raise, whatever raise_missing."""
         force = vm.Var(
             key="force",
             name="Force",
@@ -301,20 +331,28 @@ class TestVarSetPackErrors:
         # Only some components present - should always raise
         unpacked = {"force__x": 10.0, "force__y": 20.0}  # Missing force__z
 
-        with pytest.raises(KeyError, match="Missing component keys.*\\['force__z'\\]"):
+        with pytest.raises(
+            KeyError, match="Missing component keys.*\\['force__z'\\]"
+        ):
             varset.pack(unpacked, raise_missing=False)
 
-        with pytest.raises(KeyError, match="Missing component keys.*\\['force__z'\\]"):
+        with pytest.raises(
+            KeyError, match="Missing component keys.*\\['force__z'\\]"
+        ):
             varset.pack(unpacked, raise_missing=True)
 
     def test_pack_extra_keys(self):
-        temp = vm.Var(key="temp", name="Temperature", units="C", description="Temp")
+        temp = vm.Var(
+            key="temp", name="Temperature", units="C", description="Temp"
+        )
         varset = vm.VarSet([temp])
 
         # Extra key
         data = {"temp": 25.0, "extra": 100.0}
 
-        with pytest.raises(KeyError, match="Extra keys in data.*\\['extra'\\]"):
+        with pytest.raises(
+            KeyError, match="Extra keys in data.*\\['extra'\\]"
+        ):
             varset.pack(data)
 
     def test_pack_extra_component_keys(self):
@@ -330,5 +368,7 @@ class TestVarSetPackErrors:
         # Has force__x, force__y, plus extra force__z
         data = {"force__x": 10.0, "force__y": 20.0, "force__z": 30.0}
 
-        with pytest.raises(KeyError, match="Extra keys in data.*\\['force__z'\\]"):
+        with pytest.raises(
+            KeyError, match="Extra keys in data.*\\['force__z'\\]"
+        ):
             varset.pack(data)
